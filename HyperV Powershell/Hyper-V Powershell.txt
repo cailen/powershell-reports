@@ -185,6 +185,7 @@ foreach ($driveFor in $driveArrMax.GetEnumerator())
 
     #String for the Hard Drives Summary
     $harddriveString += @"
+			<div class="row">
                             <div class="col-xs-12 col-md-12">
                                 <h4 class="vmname"><span class="glyphicon glyphicon-hdd"></span> $($driveFor.Key) $hddGlyph</h4>
                                 <div class="row">
@@ -244,6 +245,7 @@ foreach ($driveFor in $driveArrMax.GetEnumerator())
                                     </div>
                                 </div>
                             </div>
+			</div>
 "@
 }
 
@@ -768,9 +770,7 @@ $body =
                         <h3 class="vmname"><span class="glyphicon glyphicon-hdd"></span> Hard Drives</h3>
                     </div>
                     <div class="panel-body" style="padding-top:0;padding-bottom:0;">
-                        <div class="row">
-                            $harddriveString
-                        </div>
+                    	$harddriveString
                     </div>
                 </div>
             </div>
