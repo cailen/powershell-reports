@@ -1,0 +1,3 @@
+IP 184.90.204.226 : 3389 for Desktop
+:1984 for VM
+:1985 for TV eth

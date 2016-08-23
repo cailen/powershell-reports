@@ -1,0 +1,261 @@
+                                                                                                                                                                                                                                                               
+Delivered-To: derekwied@gmail.com
+Received: by 10.157.42.73 with SMTP id t67csp2153400ota;
+        Thu, 19 May 2016 17:08:27 -0700 (PDT)
+X-Received: by 10.31.160.144 with SMTP id j138mr65437vke.144.1463702907331;
+        Thu, 19 May 2016 17:08:27 -0700 (PDT)
+Return-Path: <cloudsupport@atlantic.net>
+Received: from cloud.atlantic.net ([209.208.116.190])
+        by mx.google.com with ESMTP id 94si9056809uax.152.2016.05.19.17.08.27
+        for <derekwied@gmail.com>;
+        Thu, 19 May 2016 17:08:27 -0700 (PDT)
+Received-SPF: pass (google.com: domain of cloudsupport@atlantic.net designates 209.208.116.190 as permitted sender) client-ip=209.208.116.190;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: domain of cloudsupport@atlantic.net designates 209.208.116.190 as permitted sender) smtp.mailfrom=cloudsupport@atlantic.net
+Received: by cloud.atlantic.net (Postfix, from userid 48)
+	id 08CB6100255; Thu, 19 May 2016 20:08:27 -0400 (EDT)
+To: derekwied@gmail.com
+Subject: Welcome to Atlantic.Net
+X-PHP-Originating-Script: 500:class.PHPMailer.php
+Date: Thu, 19 May 2016 20:08:27 -0400
+From: "Atlantic.Net Cloud Team" <no-reply@atlantic.net>
+Message-ID: <c90a5b1267d3215b3c12fd4bda121313@cloud.atlantic.net>
+X-Mailer: PHPMailer 5.2.14 (https://github.com/PHPMailer/PHPMailer)
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+	boundary="b1_c90a5b1267d3215b3c12fd4bda121313"
+
+This is a multi-part message in MIME format.
+
+--b1_c90a5b1267d3215b3c12fd4bda121313
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Welcome to Atlantic.Net
+                                   =20
+                                   =20
+                                        Thank you for choosing Atlantic.Net=
+ as your cloud hosting provider.Your account has been activated and you may=
+ begin provisioning servers on the Atlantic.Net cloud platform. Please save=
+ this email as it contains useful information for future reference.Getting =
+Started:Login to your cloud portal by going to https://cloud.atlantic.net w=
+ith the email address and password you provided during the signup process.Y=
+our cloud portal is designed to help you manage your servers, SSH keys, DNS=
+ records, billing information and your referral program.  You can also find=
+ useful information about our cloud on our Community Website.Technical Supp=
+ort:Email: cloudsupport@atlantic.netUS: 1.800.540.4686, Option 3Intl: +1.32=
+1.206.3731, Option 3Our technical support staff can assist you with cloud p=
+ortal questions, domain registrations, SSL certificates, domain record chan=
+ges, cloud server reboots, and consulting work.Billing Contact Information:=
+Email: cloudbilling@atlantic.netUS: 1.800.540.4686 Ext. 6110Intl: +1.321.20=
+6.3730 Ext. 6110Service Policies:Terms of Service: https://atlantic.net/ser=
+vice-policies/cloud-terms-service/Service Level Guarantee: https://atlantic=
+.net/service-policies/cloud-service-level-agreement/Acceptable Use Policy: =
+https://atlantic.net/service-policies/acceptable-use-policy/Got Ideas?We st=
+rive to continually improve and enhance our service, and we value your cont=
+inued support and feedback. Please share your experience, feedback, or sugg=
+estions by emailing them to us at feedback@atlantic.net.Once again, we woul=
+d like to thank you for choosing Atlantic.Net as your Cloud Hosting Provide=
+r.Sincerely,Atlantic.Net Cloud Team
+                                   =20
+                               =20
+                           =20
+                       =20
+                   =20
+
+                   =20
+               =20
+           =20
+       =20
+        =20
+       =20
+       =20
+           =20
+               =20
+               =20
+
+                   =20
+                       =20
+                           =20
+                                Support =C2=A0|=C2=A0 Community =C2=A0|=C2=
+=A0 API Documentation
+
+--b1_c90a5b1267d3215b3c12fd4bda121313
+Content-Type: text/html; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html>
+<html style=3D"font-family: sans-serif; font-size: 100%; line-height: 1.6em=
+; margin: 0; padding: 0;">
+    <head>
+        <meta name=3D"viewport" content=3D"width=3Ddevice-width">
+        <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3DU=
+TF-8">
+        <title>Welcome to Atlantic.Net</title>
+    </head>
+    <body bgcolor=3D"#f6f6f6" style=3D"background-color:#F6F6F6 !important;=
+font-family: sans-serif; font-size: 100%; line-height: 1.6em; -webkit-font-=
+smoothing: antialiased; height: 100%; -webkit-text-size-adjust: none; width=
+: 100% !important; margin: 0; padding: 0;">
+        <!-- header -->
+        <table class=3D"header-wrap" style=3D"font-family: sans-serif; font=
+-size: 100%; line-height: 1.6em; clear: both !important; width: 100%; margi=
+n: 0; padding: 0;">
+            <tr style=3D"font-family: sans-serif; font-size: 100%; line-hei=
+ght: 1.6em; margin: 0; padding: 0;">
+                <td style=3D"font-family: sans-serif; font-size: 100%; line=
+-height: 1.6em; margin: 0; padding: 0;"></td>
+                <td class=3D"container" style=3D"font-family: sans-serif; f=
+ont-size: 100%; line-height: 1.6em; clear: both !important; display: block =
+!important; margin: 0 auto; padding: 0;"><!-- content -->
+
+                    <div class=3D"content" style=3D"font-family: sans-serif=
+; font-size: 100%; line-height: 1.6em; display: block; margin: 0 auto; padd=
+ing: 0;">
+                        <table style=3D"font-family: sans-serif; font-size:=
+ 100%; line-height: 1.6em; width: 100%; margin: 0; padding: 0; text-align: =
+center;">
+                            <tr style=3D"font-family: sans-serif; font-size=
+: 100%; line-height: 1.6em; margin: 0; padding: 0;">
+                                <td align=3D"center" style=3D"font-family: =
+sans-serif; font-size: 100%; line-height: 1.6em; margin: 0; padding: 0; tex=
+t-align: center;"><img style=3D"Margin-top:25px;; Margin-bottom:0; Margin-l=
+eft:auto; Margin-right:auto;" src=3D"https://cloud.atlantic.net/images/logo=
+-black-md.png" alt=3D"Atlantic.Net" /></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- /content --></td>
+                <td style=3D"font-family: sans-serif; font-size: 100%; line=
+-height: 1.6em; margin: 0; padding: 0;"></td>
+            </tr>
+        </table>
+        <!-- /header -->=20
+        <!-- body -->
+        <!--[if mso]>
+         <center>
+         <table><tr><td width=3D"600">
+        <![endif]-->
+        <table class=3D"body-wrap" style=3D"font-family: sans-serif; font-s=
+ize: 100%; line-height: 1.6em; width: 100%; margin: 0; padding: 20px;">
+            <tr style=3D"font-family: sans-serif; font-size: 100%; line-hei=
+ght: 1.6em; margin: 0; padding: 0;">
+                <td style=3D"font-family: sans-serif; font-size: 100%; line=
+-height: 1.6em; margin: 0; padding: 0;"></td>
+                <td class=3D"container" bgcolor=3D"#FFFFFF" style=3D"font-f=
+amily: sans-serif; font-size: 100%; line-height: 1.6em; clear: both !import=
+ant; display: block !important; max-width: 600px !important; Margin:auto; p=
+adding: 20px; border: 1px solid #f0f0f0;"><!-- content -->
+
+                    <div class=3D"content" style=3D"font-family: sans-serif=
+; font-size: 100%; line-height: 1.6em; display: block; max-width: 600px; ma=
+rgin: 0 auto; padding: 0;">
+                        <table style=3D"font-family: sans-serif; font-size:=
+ 100%; line-height: 1.6em; width: 100%; margin: 0; padding: 0;">
+                            <tr style=3D"font-family: sans-serif; font-size=
+: 100%; line-height: 1.6em; margin: 0; padding: 0;">
+                                <td style=3D"font-family: sans-serif; font-=
+size: 100%; line-height: 1.6em; margin: 0; padding: 0;">
+                                    <h1 style=3D"font-family: 'Helvetica Ne=
+ue', Helvetica, Arial, 'Lucida Grande', sans-serif; font-size: 28px; line-h=
+eight: 1em; color: #444444; font-weight: 200; margin: 20px 0 10px; padding:=
+ 0;">
+                                        Welcome to Atlantic.Net
+                                    </h1>
+                                    <p style=3D"Margin-top: 20px;Margin-bot=
+tom: 20px;font-size: 17px;line-height: 26px; color: #444444;">
+                                        Thank you for choosing Atlantic.Net=
+ as your cloud hosting provider.<br>Your account has been activated and you=
+ may begin provisioning servers on the Atlantic.Net cloud platform. Please =
+save this email as it contains useful information for future reference.<br>=
+<h3>Getting Started:</h3>Login to your cloud portal by going to <a href=3D"=
+https://cloud.atlantic.net">https://cloud.atlantic.net</a> with the email a=
+ddress and password you provided during the signup process.<br>Your cloud p=
+ortal is designed to help you manage your servers, SSH keys, DNS records, b=
+illing information and your referral program.  You can also find useful inf=
+ormation about our cloud on our <a href=3D"https://www.atlantic.net/communi=
+ty/">Community Website</a>.<br><h3>Technical Support:</h3>Email: <a href=3D=
+"mailto:cloudsupport@atlantic.net">cloudsupport@atlantic.net</a><br>US: 1.8=
+00.540.4686, Option 3<br>Intl: +1.321.206.3731, Option 3<br>Our technical s=
+upport staff can assist you with cloud portal questions, domain registratio=
+ns, SSL certificates, domain record changes, cloud server reboots, and cons=
+ulting work.<br><h3>Billing Contact Information:</h3>Email: <a href=3D"mail=
+to:cloudbilling@atlantic.net">cloudbilling@atlantic.net</a><br>US: 1.800.54=
+0.4686 Ext. 6110<br>Intl: +1.321.206.3730 Ext. 6110<br><h3>Service Policies=
+:</h3>Terms of Service: <a href=3D"https://atlantic.net/service-policies/cl=
+oud-terms-service/">https://atlantic.net/service-policies/cloud-terms-servi=
+ce/</a><br>Service Level Guarantee: <a href=3D"https://atlantic.net/service=
+-policies/cloud-service-level-agreement/">https://atlantic.net/service-poli=
+cies/cloud-service-level-agreement/</a><br>Acceptable Use Policy: <a href=
+=3D"https://atlantic.net/service-policies/acceptable-use-policy/">https://a=
+tlantic.net/service-policies/acceptable-use-policy/</a><br><h3>Got Ideas?</=
+h3>We strive to continually improve and enhance our service, and we value y=
+our continued support and feedback. Please share your experience, feedback,=
+ or suggestions by emailing them to us at <a href=3D"mailto:feedback@atlant=
+ic.net">feedback@atlantic.net</a>.<br><br><b>Once again, we would like to t=
+hank you for choosing Atlantic.Net as your Cloud Hosting Provider.</b><br><=
+br><br>Sincerely,<br>Atlantic.Net Cloud Team<br>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- /content --></td>
+                <td style=3D"font-family: sans-serif; font-size: 100%; line=
+-height: 1.6em; margin: 0; padding: 0;"></td>
+            </tr>
+        </table>
+        <!--[if mso]>
+         </td></tr></table>
+         </center>
+        <![endif]-->=20
+        <!-- /body --><!-- footer -->
+        <table class=3D"footer-wrap" style=3D"font-family: sans-serif; font=
+-size: 100%; line-height: 1.6em; clear: both !important; width: 100%; margi=
+n: 0; padding: 0;">
+            <tr style=3D"font-family: sans-serif; font-size: 100%; line-hei=
+ght: 1.6em; margin: 0; padding: 0;">
+                <td style=3D"font-family: sans-serif; font-size: 100%; line=
+-height: 1.6em; margin: 0; padding: 0;"></td>
+                <td class=3D"container" style=3D"font-family: sans-serif; f=
+ont-size: 100%; line-height: 1.6em; clear: both !important; display: block =
+!important; margin: 0 auto; padding: 0;"><!-- content -->
+
+                    <div class=3D"content" style=3D"font-family: sans-serif=
+; font-size: 100%; line-height: 1.6em; display: block; margin: 0 auto; padd=
+ing: 0;">
+                        <table style=3D"font-family: sans-serif; font-size:=
+ 100%; line-height: 1.6em; width: 100%; margin: 0; padding: 0;">
+                            <tr style=3D"font-family: sans-serif; font-size=
+: 100%; line-height: 1.6em; margin: 0; padding: 0;">
+                                <td align=3D"center" style=3D"font-family: =
+sans-serif; font-size: 100%; line-height: 1.6em; margin: 0; padding: 0;"><p=
+ style=3D"font-family: sans-serif; font-size: 14px; line-height: 1.6em; col=
+or: #666666; font-weight: normal; margin: 0 0 10px; padding: 0;"><a href=3D=
+"https://www.atlantic.net/support/" style=3D"font-family: sans-serif; font-=
+size: 100%; line-height: 1.6em; color: #999999; margin: 0; padding: 0;">Sup=
+port</a> &nbsp;|&nbsp; <a href=3D"https://www.atlantic.net/community/" styl=
+e=3D"font-family: sans-serif; font-size: 100%; line-height: 1.6em; color: #=
+999999; margin: 0; padding: 0;">Community</a> &nbsp;|&nbsp; <a href=3D"http=
+s://www.atlantic.net/docs/api/" style=3D"font-family: sans-serif; font-size=
+: 100%; line-height: 1.6em; color: #999999; margin: 0; padding: 0;">API Doc=
+umentation</a> </p></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- /content --></td>
+                <td style=3D"font-family: sans-serif; font-size: 100%; line=
+-height: 1.6em; margin: 0; padding: 0;"></td>
+            </tr>
+        </table>
+        <!-- /footer -->
+    </body>
+</html>
+
+
+--b1_c90a5b1267d3215b3c12fd4bda121313--
+
+
