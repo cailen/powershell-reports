@@ -1,4 +1,4 @@
-﻿#region Variables
+﻿#region ::: Variables
 $TotalHddMax = 0.00
 $TotalHddCurrent = 0.00
 $TotalHddOnline = 0.00
@@ -14,8 +14,7 @@ $offlineVMs = ($VMs | Where State -eq "Off" | Measure).Count
 $totalVMs = ($VMs).Count
 $reportTitle = "VM Report for $((Get-VMHost).Name)"
 $reportDate = "$(Get-Date -Format "MM-dd-yyyy")"
-$driveLetters = gdr -PSProvider 'FileSystem' | Select Name, Used, Free
-$VHDs = $VMs | Get-VMHardDiskDrive | Get-VHD | Select Path, FileSize, Size
+$driveLetters = gdr -PSProvider 'FileSystem' | Select Name, Used, Free 
 $driveArrCurrent = New-Object 'System.Collections.Generic.Dictionary[string,double]'
 $driveArrOnline = New-Object 'System.Collections.Generic.Dictionary[string,double]'
 $driveArrMax = New-Object 'System.Collections.Generic.Dictionary[string,double]'
@@ -23,48 +22,11 @@ $driveArrUsed = @{}
 $driveArrFree = @{}
 $hddContainer = "info"
 $hddUsedProgressBar = "success"
+$vhd_usedPB = ""
+$vhd_table = ""
+#endregion ::: Variables
 
-#endregion Variables
-
-#region Building the VHD-to-Disk Array
-#Building a dictionary for the Drives
-
-foreach($VHD in $VHDs)
-{
-    if($VM.State -eq "Running")
-    {
-        if($driveArrMax.ContainsKey($VHD.Path.Substring(0,1)))
-        {
-            $driveArrMax[$VHD.Path.Substring(0,1)] += $VHD.Size -as [float]
-            $driveArrCurrent[$VHD.Path.Substring(0,1)] += $VHD.FileSize
-            $driveArrOnline[$VHD.Path.Substring(0,1)] += $VHD.Size
-        }
-        else
-        {
-            $driveArrMax[$VHD.Path.Substring(0,1)] += $VHD.Size -as [float]
-            $driveArrCurrent[$VHD.Path.Substring(0,1)] += $VHD.FileSize -as [float]
-            $driveArrOnline[$VHD.Path.Substring(0,1)] += $VHD.Size -as [float]
-            $driveArrFree.Add($VHD.Path.Substring(0,1),($driveLetters | Where Name -ieq $VHD.Path.Substring(0,1) | Select Free))
-            $driveArrUsed.Add($VHD.Path.Substring(0,1),($driveLetters | Where Name -ieq $VHD.Path.Substring(0,1) | Select Used))
-        }
-    }
-    else
-    {
-        if($driveArrMax.ContainsKey($VHD.Path.Substring(0,1)))
-        {
-            $driveArrMax[$VHD.Path.Substring(0,1)] += $VHD.Size
-        }
-        else
-        {
-            $driveArrMax[$VHD.Path.Substring(0,1)] += $VHD.Size
-            $driveArrFree.Add($VHD.Path.Substring(0,1),($driveLetters | Where Name -ieq $VHD.Path.Substring(0,1) | Select Free))
-            $driveArrUsed.Add($VHD.Path.Substring(0,1),($driveLetters | Where Name -ieq $VHD.Path.Substring(0,1) | Select Used))
-        }
-    }
-}
-
-#endregion
-
+#region ::: Get the memory and hard drive stats from the VMs
 Foreach ($VM in $VMs)
 {
     $TotalRamMax += $VM.MemoryStartup
@@ -74,48 +36,62 @@ Foreach ($VM in $VMs)
     {
         $TotalRamOnline += $VM.MemoryStartup
     } 
+
+    $VHDs = $VM | Get-VMHardDiskDrive | Get-VHD | Select Path, FileSize, Size
+
+
+    #Fill the drive stats dictionary (Key=Drive Letter, Value=Size)
+    foreach($VHD in $VHDs)
+    {
+        if($VM.State -eq "Running")
+        {
+            if($driveArrMax.ContainsKey($VHD.Path.Substring(0,1)))
+            {
+                $driveArrMax[$VHD.Path.Substring(0,1)] += $VHD.Size -as [float]
+                $driveArrCurrent[$VHD.Path.Substring(0,1)] += $VHD.FileSize
+                $driveArrOnline[$VHD.Path.Substring(0,1)] += $VHD.Size
+            }
+            else
+            {
+                $driveArrMax[$VHD.Path.Substring(0,1)] += $VHD.Size -as [float]
+                $driveArrCurrent[$VHD.Path.Substring(0,1)] += $VHD.FileSize -as [float]
+                $driveArrOnline[$VHD.Path.Substring(0,1)] += $VHD.Size -as [float]
+                $driveArrFree.Add($VHD.Path.Substring(0,1),($driveLetters | Where Name -ieq $VHD.Path.Substring(0,1) | Select Free))
+                $driveArrUsed.Add($VHD.Path.Substring(0,1),($driveLetters | Where Name -ieq $VHD.Path.Substring(0,1) | Select Used))
+            }
+        }
+        else
+        {
+            if($driveArrMax.ContainsKey($VHD.Path.Substring(0,1)))
+            {
+                $driveArrMax[$VHD.Path.Substring(0,1)] += $VHD.Size
+            }
+            else
+            {
+                $driveArrMax[$VHD.Path.Substring(0,1)] += $VHD.Size
+                $driveArrFree.Add($VHD.Path.Substring(0,1),($driveLetters | Where Name -ieq $VHD.Path.Substring(0,1) | Select Free))
+                $driveArrUsed.Add($VHD.Path.Substring(0,1),($driveLetters | Where Name -ieq $VHD.Path.Substring(0,1) | Select Used))
+            }
+        }
+    }
 }
+#endregion ::: Get the memory and hard drive stats from the VMs
 
-#FUNCTION::Add the ability for ConvertTo-HTML table to modify table HTML syntax
-Function Add-HTMLTableAttribute
-{
-    Param
-    (
-        [Parameter(Mandatory=$true,ValueFromPipeline=$true)]
-        [string]
-        $HTML,
-
-        [Parameter(Mandatory=$true)]
-        [string]
-        $AttributeName,
-
-        [Parameter(Mandatory=$true)]
-        [string]
-        $Value
-
-    )
-
-
-    $xml=[xml]$HTML
-    $attr=$xml.CreateAttribute($AttributeName)
-    $attr.Value=$Value
-    $xml.table.Attributes.Append($attr) | Out-Null
-    Return ($xml.OuterXML | out-string)
-}
-
-#region ::HDD Progress Bar Calculations
+#region ::: HDD Progress Bar Calculations
 #=============================
 
+#Go through each drive
 foreach ($driveFor in $driveArrMax.GetEnumerator())
 {
-    
     $HostDriveTotal = ($driveArrFree[$driveFor.Key].Free + $driveArrUsed[$driveFor.Key].Used)
 
+    #find out the percentages
     [float]$hddMaxPercent = ("{0:N2}" -f ((($driveArrMax.Get_Item($driveFor.Key))/1gb -as [float])/($HostDriveTotal/1gb -as [float]) * 100))
     [float]$hddUsedPercent = ("{0:N2}" -f ((($driveArrUsed[$driveFor.Key].Used)/1gb -as [float])/($HostDriveTotal/1gb -as [float]) * 100))
     [float]$hddOnlinePercent = ("{0:N2}" -f ((($driveArrOnline.Get_Item($driveFor.Key))/1gb -as [float])/($HostDriveTotal/1gb -as [float]) * 100))
     [float]$hddCurrentPercent = ("{0:N2}" -f ((($driveArrCurrent.Get_Item($driveFor.Key))/1gb -as [float])/($HostDriveTotal/1gb -as [float]) * 100))
 
+    #region ::: setup the progress bar percentages (in other words, if they're over 100%, set them to 100%
     switch($hddUsedPercent)
     {
         {$hddUsedPercent -gt 90.00} {$hddUsedProgressBar = "danger"; break}
@@ -158,7 +134,9 @@ foreach ($driveFor in $driveArrMax.GetEnumerator())
         {$hddCurrentPercent -gt 75.00} {$hddCurrentProgressBar = "warning"; break}
         default {$hddCurrentProgressBar = "info"}
     }
+    #endregion ::: setup the progress bar percentages (in other words, if they're over 100%, set them to 100%
 
+    #region ::: adjust the percentages for the progress bar
     #IF ONLINE IS BIGGER THAN MAX, MAX IS GOING TO BE 0
     if ($hddOnlinePercent -ge $hddMaxPercent)
     {
@@ -198,70 +176,77 @@ foreach ($driveFor in $driveArrMax.GetEnumerator())
         $hddOnlinePercent = 0
         $hddMaxPercent = 0
     }
+    #endregion ::: adjust the percentages for the progress bar
 
-    $harddriveString += 
-@"
-                            <div class="col-xs-6 col-md-6 bg-$hddContainer" style="outline: 1px solid orange;">
+    #String for the Hard Drives Summary
+    $harddriveString += @"
+                            <div class="col-xs-12 col-md-12 bg-$hddContainer">
                                 <h4 class="vmname">Hard Drive `($($driveFor.Key)`:) Usage $hddGlyph</h4>
-                                <table class="table table-striped table-condensed text-center">
-                                    <tr>
-                                        <th>Current Use</th>
-                                        <th>Running Max</th>
-                                        <th>Total Max</th>
-                                        <th>System Capacity</th>
-                                    </tr>
-                                    <tr>
-                                        <td>$("{0:N2}" -f (($driveArrCurrent.Get_Item($driveFor.Key))/1gb -as [float]))</td>
-                                        <td>$("{0:N2}" -f (($driveArrOnline.Get_Item($driveFor.Key))/1gb -as [float]))</td>
-                                        <td>$("{0:N2}" -f (($driveArrMax.Get_Item($driveFor.Key))/1gb -as [float]))</td>
-                                        <td>$("{0:N2} GB" -f ($HostDriveTotal/1gb -as [float]))</td>
-                                    </tr>
-                                </table>
-                                <div class="progress">
-                                
-                                    <div class="progress-bar progress-bar-$hddCurrentProgressBar progress-bar-striped active"
-                                        aria-valuenow="$hddCurrentPercent" aria-valuemin="0" 
-                                        aria-valuemax="100" style="width:$hddCurrentPercent%">
-                                        <span>Current</span>
+                                <div class="row">
+                                    <div class="col-xs-6 col-md-6">
+                                        <table class="table table-striped table-condensed text-center">
+                                            <tr>
+                                                <th>Current Use</th>
+                                                <th>Running Max</th>
+                                                <th>Total Max</th>
+                                                <th>System Capacity</th>
+                                            </tr>
+                                            <tr>
+                                                <td>$("{0:N2}" -f (($driveArrCurrent.Get_Item($driveFor.Key))/1gb -as [float]))</td>
+                                                <td>$("{0:N2}" -f (($driveArrOnline.Get_Item($driveFor.Key))/1gb -as [float]))</td>
+                                                <td>$("{0:N2}" -f (($driveArrMax.Get_Item($driveFor.Key))/1gb -as [float]))</td>
+                                                <td>$("{0:N2} GB" -f ($HostDriveTotal/1gb -as [float]))</td>
+                                            </tr>
+                                        </table>
+                                        <div class="progress">
+                                            <div class="progress-bar progress-bar-$hddCurrentProgressBar progress-bar-striped active"
+                                                aria-valuenow="$hddCurrentPercent" aria-valuemin="0" 
+                                                aria-valuemax="100" style="width:$hddCurrentPercent%">
+                                                <span>Current</span>
+                                            </div>
+                                            <div class="progress-bar progress-bar-$hddOnlineProgressBar progress-bar-striped" 
+                                                aria-valuenow="$hddOnlinePercent" aria-valuemin="0" 
+                                                aria-valuemax="100" style="width:$hddOnlinePercent%">
+                                                <span>Online</span>
+                                            </div>
+                                            <div class="progress-bar progress-bar-$hddMaxProgressBar" 
+                                                aria-valuenow="$hddMaxPercent" aria-valuemin="0" 
+                                                aria-valuemax="100" style="width:$hddMaxPercent%">
+                                                <span>Total</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="progress-bar progress-bar-$hddOnlineProgressBar progress-bar-striped" 
-                                        aria-valuenow="$hddOnlinePercent" aria-valuemin="0" 
-                                        aria-valuemax="100" style="width:$hddOnlinePercent%">
-                                        <span>Online</span>
-                                    </div>
-                                    <div class="progress-bar progress-bar-$hddMaxProgressBar" 
-                                        aria-valuenow="$hddMaxPercent" aria-valuemin="0" 
-                                        aria-valuemax="100" style="width:$hddMaxPercent%">
-                                        <span>Total</span>
+                                    <div class="col-xs-6 col-md-6">
+                                        <table class="table table-striped table-condensed text-center">
+                                            <tr>
+                                                <th>Drive Used Space</th>
+                                                <th>Drive Free Space</th>
+                                                <th>System Capacity</th>
+                                            </tr>
+                                            <tr>
+                                                <td>$("{0:N2}" -f (($driveArrUsed[$driveFor.Key].Used)/1gb -as [float]))</td>
+                                                <td>$("{0:N2}" -f (($driveArrFree[$driveFor.Key].Free)/1gb -as [float]))</td>
+                                                <td>$("{0:N2} GB" -f ($HostDriveTotal/1gb -as [float]))</td>
+                                            </tr>
+                                        </table>
+                                        <div class="progress">
+                                            <div class="progress-bar progress-bar-$hddUsedProgressBar progress-bar-striped active"
+                                                aria-valuenow="$hddUsedPercent" aria-valuemin="0" 
+                                                aria-valuemax="100" style="width:$hddUsedPercent%">
+                                                <span>$hddUsedPercent%</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <table class="table table-striped table-condensed text-center">
-                                    <tr>
-                                        <th>Drive Used Space</th>
-                                        <th>Drive Free Space</th>
-                                        <th>System Capacity</th>
-                                    </tr>
-                                    <tr>
-                                        <td>$("{0:N2}" -f (($driveArrFree[$driveFor.Key].Free)/1gb -as [float]))</td>
-                                        <td>$("{0:N2}" -f (($driveArrUsed[$driveFor.Key].Used)/1gb -as [float]))</td>
-                                        <td>$("{0:N2} GB" -f ($HostDriveTotal/1gb -as [float]))</td>
-                                    </tr>
-                                </table>
-                                <div class="progress">
-                                    <div class="progress-bar progress-bar-$hddUsedProgressBar progress-bar-striped active"
-                                        aria-valuenow="$hddUsedPercent" aria-valuemin="0" 
-                                        aria-valuemax="100" style="width:$hddUsedPercent%">
-                                        <span>$hddUsedPercent%</span>
-                                    </div>
-                                </div>
-                            </div>    
+                            </div>
+
 "@
 }
 
 #=====================
-#endregion ::HDD Calculations
+#endregion ::: HDD Calculations
 
-#region ::RAM Progress Bar Calculations
+#region ::: RAM Progress Bar Calculations
 #=============================
 
 [float]$ramMaxPercent = ("{0:N2}" -f (($TotalRamMax/1gb -as [float])/($HostMemory.MemoryCapacity/1gb -as [float]) * 100))
@@ -289,6 +274,7 @@ switch ($ramCurrentPercent)
     default {$memoryCurrentProgressBar = "info"}
 }
 
+#region ::: Adjust the percentages for the progress bar
 #IF ONLINE IS BIGGER THAN MAX, MAX IS GOING TO BE 0
 if ($ramOnlinePercent -ge $ramMaxPercent)
 {
@@ -328,11 +314,12 @@ else
     $ramOnlinePercent = 0
     $ramMaxPercent = 0
 }
+#endregion ::: Adjust the percentages for the progress bar
 
 #=====================
-#endregion ::RAM Calculations
+#endregion ::: RAM Calculations
 
-#region HEADER HTML
+#region ::: HEADER HTML
 $header = 
 @"
 <title>$reportTitle on $reportDate</title>
@@ -361,8 +348,9 @@ $header =
     }
 </style>
 "@
-#endregion HEADER HTML
-#region BODY HTML
+#endregion ::: HEADER HTML
+
+#region ::: BODY HTML
 $body = 
 @"
     <div class="container">
@@ -440,7 +428,7 @@ $body =
             </div>
         </div>
         <div class="row">
-        <div class="col-xs-12 col-md-12">
+            <div class="col-xs-12 col-md-12">
                 <div class="panel panel-primary">
                     <div class="panel-heading">
                         <h3 class="vmname">Hard Drives</h3>
@@ -457,9 +445,13 @@ $body =
         <div class="row">
 "@
 
+#Create the individual VM panels
 Foreach ($VM in $VMs)
 {
     $HardDrives = $VM.HardDrives
+
+    [float]$VHD_Used = ("{0:N2}" -f ((($driveArrMax.Get_Item($driveFor.Key))/1gb -as [float])/($HostDriveTotal/1gb -as [float]) * 100))
+    [float]$VHD_Used = ("{0:N2}" -f ((($driveArrUsed[$driveFor.Key].Used)/1gb -as [float])/($HostDriveTotal/1gb -as [float]) * 100))
 
     $body += 
 @"
@@ -486,10 +478,56 @@ Foreach ($VM in $VMs)
                         </div>
                         <h4 class="text-center">Virtual Hard Drives </h4>
                     </div>
-                    $($HardDrives | ConvertTo-Html -Fragment @{label=’Loc’;expression={$_.path.Substring(0,1)}},@{label=’Disk’;expression={$_.ControllerLocation}},@{label=’Current Size’;expression={("{0:N2} GB" -f (($_.path | Get-VHD).FileSize/1gb –as [float]))}}, @{label=’Max Size’;expression={("{0:N2} GB" -f (($_.path | Get-VHD).Size/1gb –as [float]))}} | out-string | Add-HTMLTableAttribute -AttributeName 'class' -Value 'table table-striped table-condensed text-center')
+                    $(foreach($HardDrive in $HardDrives)
+                    {
+                        [float]$vhd_UsedPercent = ("{0:N2}" -f (($HardDrive.path | Get-VHD).FileSize/1gb –as [float])/(($HardDrive.path | Get-VHD).Size/1gb –as [float]) * 100)
+
+                        switch ($vhd_UsedPercent)
+                        {
+                            {$vhd_UsedPercent -gt 90.00} {$vhd_ProgressBar = "danger"; break}
+                            {$vhd_UsedPercent -gt 75.00} {$vhd_ProgressBar = "warning"; break}
+                            default {$vhd_ProgressBar = "success"}
+                        }
+
+                        $vhd_table +=
+@"
+                        <tr>
+                            <td>$($HardDrive.path.Substring(0,1))</td>
+                            <td>$($HardDrive.ControllerLocation)</td>
+                            <td>$("{0:N2} GB" -f (($HardDrive.path | Get-VHD).FileSize/1gb –as [float]))</td>
+                            <td>$("{0:N2} GB" -f (($HardDrive.path | Get-VHD).Size/1gb –as [float]))</td>
+                        </tr>
+"@
+                        $vhd_usedPB +=
+@"
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-$vhd_ProgressBar progress-bar-striped" 
+                            aria-valuenow="$vhd_UsedPercent" aria-valuemin="0" 
+                            aria-valuemax="100" style="width:$vhd_UsedPercent%">
+                            <span>$vhd_UsedPercent%</span>
+                        </div>
+                    </div>
+"@
+                    })
+                    <table class="table table-striped table-condensed text-center">
+                        <tr>
+                            <th>Loc</th>
+                            <th>Disk</th>
+                            <th>Current Size</th>
+                            <th>Max Size</th>
+                        </tr>
+                        $vhd_table
+                    </table>
+                    <div class="panel-body">
+                    $vhd_usedPB
+                    </div>
                 </div>
             </div>
 "@
+
+#Clear the VHD ForEach string variables
+$vhd_table = ""
+$vhd_usedPB = ""
 }
 
 $body +=
@@ -500,7 +538,7 @@ $body +=
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     </div>
 "@
-#endregion BODY HTML
+#endregion ::: BODY HTML
 
 #CREATE THE HTML FILE::Defaults to C:\
 ConvertTo-Html -Title $reportTitle -Head $header -Body $body | Set-Content  "C:\$reportTitle on $reportDate.htm"
@@ -526,4 +564,3 @@ rv harddriveString
 #OPEN THE HTML FILE
 Invoke-Item "C:\$reportTitle on $reportDate.htm"
 #BYE
-# USED FOR TESTING HTML INTEGRITY -> ConvertTo-Html -PostContent $HTML
