@@ -12,7 +12,7 @@ $runningVMs = ($VMs | Where State -eq "Running" | Measure).Count
 $pausedVMs = ($VMs | Where {($_.State -eq "Paused") -or ($_.State -eq "Saved")} | Measure).Count
 $offlineVMs = ($VMs | Where State -eq "Off" | Measure).Count
 $totalVMs = ($VMs).Count
-$reportTitle = "VM Report for $((Get-VMHost).Name)"
+$reportTitle = "Hyper-V Report for $((Get-VMHost).Name)"
 $reportDate = "$(Get-Date -Format "MM-dd-yyyy")"
 $driveLetters = gdr -PSProvider 'FileSystem' | Select Name, Used, Free 
 $driveArrCurrent = New-Object 'System.Collections.Generic.Dictionary[string,double]'
@@ -24,6 +24,7 @@ $hddContainer = "info"
 $hddUsedProgressBar = "success"
 $vhd_usedPB = ""
 $vhd_table = ""
+$vms_string = ""
 #endregion ::: Variables
 
 #region ::: Get the memory and hard drive stats from the VMs
@@ -239,7 +240,6 @@ foreach ($driveFor in $driveArrMax.GetEnumerator())
                                     </div>
                                 </div>
                             </div>
-
 "@
 }
 
@@ -319,6 +319,104 @@ else
 #=====================
 #endregion ::: RAM Calculations
 
+#region ::: VMs
+#Create the individual VM panels
+Foreach ($VM in $VMs)
+{
+    $HardDrives = $VM.HardDrives
+    $VM_style = ""
+    $VM_state = ""
+
+    [float]$VHD_Used = ("{0:N2}" -f ((($driveArrUsed[$driveFor.Key].Used)/1gb -as [float])/($HostDriveTotal/1gb -as [float]) * 100))
+
+    $(Switch($VM.State)
+    {
+        "Running" {$VM_style = "success"; $VM_state = "Online"; break;}
+        "Paused" {$VM_style = "warning"; $VM_state = "Paused"; break;}
+        "Off" {$VM_style = "danger"; $VM_state = "Offline"; break;}
+        "Saved" {$VM_style = "warning"; $VM_state = "Paused"; break;}
+        default {$VM_style = "info"; $VM_state = "Other"; break;}
+    })
+
+    $vms_string += 
+@"
+                    <div class="col-xs-12 col-md-12">
+                        <div class="row" style="margin-bottom:5px; margin-top:5px;">
+                        <div class="col-xs-3 col-md-3">
+                            <button type="button" class="btn btn-$VM_style btn-block">
+                            <h3 class="vmname panel-title">$($VM.Name)</h3>
+                            <p class="text-center"><span class="badge">$($VM.ProcessorCount) vCPU</span></p>
+                            $VM_state
+                            </button>
+                        </div>
+                        <div class="col-xs-3 col-md-3">
+                            <h4 class="text-center">RAM: $("{0:N2} GB" -f ($VM.MemoryAssigned/1gb -as [float])) of $("{0:N2} GB" -f ($VM.MemoryStartup/1gb -as [float]))</h4>
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-striped active" role="progressbar" 
+                                    aria-valuenow="$("{0:N2}" -f (($VM.MemoryAssigned/1gb -as [float])/($VM.MemoryStartup/1gb -as [float]) * 100)) aria-valuemin="0" aria-valuemax="100" style="width:$("{0:N2}" -f (($VM.MemoryAssigned/1gb -as [float])/($VM.MemoryStartup/1gb -as [float]) * 100))%">
+                                </div>
+                            </div>
+                        </div>
+                        
+                            $(foreach($HardDrive in $HardDrives)
+                            {
+                                [float]$vhd_UsedPercent = ("{0:N2}" -f (($HardDrive.path | Get-VHD).FileSize/1gb –as [float])/(($HardDrive.path | Get-VHD).Size/1gb –as [float]) * 100)
+
+                                switch ($vhd_UsedPercent)
+                                {
+                                    {$vhd_UsedPercent -gt 90.00} {$vhd_ProgressBar = "danger"; break}
+                                    {$vhd_UsedPercent -gt 75.00} {$vhd_ProgressBar = "warning"; break}
+                                    default {$vhd_ProgressBar = "success"}
+                                }
+
+                                $vhd_table += @"
+                                
+                                <tr>
+                                    <td>$($HardDrive.path.Substring(0,1))</td>
+                                    <td>$($HardDrive.ControllerLocation)</td>
+                                    <td>$("{0:N2} GB" -f (($HardDrive.path | Get-VHD).FileSize/1gb –as [float]))</td>
+                                    <td>$("{0:N2} GB" -f (($HardDrive.path | Get-VHD).Size/1gb –as [float]))</td>
+                                    <td>
+                                        <div class="progress">
+                                            <div class="progress-bar progress-bar-$vhd_ProgressBar progress-bar-striped" 
+                                                aria-valuenow="$vhd_UsedPercent" aria-valuemin="0" 
+                                                aria-valuemax="100" style="width:$vhd_UsedPercent%">
+                                                <span>$("{0:N0}" -f ($vhd_UsedPercent))%</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+"@
+                            })
+                        <div class="col-xs-6 col-md-6">
+                            <table class="table table-striped table-condensed text-center">
+                                <thead>
+                                    <tr>
+                                        <th>Loc</th>
+                                        <th>Disk</th>
+                                        <th>Current Size</th>
+                                        <th>Max Size</th>
+                                        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    $vhd_table
+                                </tbody>
+                                
+                            </table>
+                        </div>
+                        </div>
+                        </div>
+"@
+
+    #Clear the VHD string variables
+    $vhd_table = ""
+    $vhd_usedPB = ""
+}
+#endregion ::: VMs
+
 #region ::: HEADER HTML
 $header = 
 @"
@@ -346,7 +444,12 @@ $header =
     th {
         text-align: center;
     }
-</style>
+
+    table .progress {
+        margin-bottom: 0;
+    }
+
+    </style>
 "@
 #endregion ::: HEADER HTML
 
@@ -354,41 +457,54 @@ $header =
 $body = 
 @"
     <div class="container">
-        <div class="jumbotron text-center"><h1>$reportTitle</h1><h2>$reportDate</h2></div>
-        <div class="page-header text-center"><h1>Summary<h1></div>
+        <div class="jumbotron text-center"><h1 class="h1">$reportTitle</h1><h3 class="h3">$reportDate</h3><h2 class="h2 text-center">Summary</h2></div>
         <div class="row">
             <div class="col-xs-6 col-md-6">
-                <p class="text-center">
-                    Online vCPUs
-                    <span class="badge">
-                        $(($VMs | Where State -eq "Running" | Measure-Object ProcessorCount -Sum).Sum)
-                    </span>
-                     Total vCPUs
-                    <span class="badge">
-                        $(($VMs | Measure-Object ProcessorCount -Sum).Sum)
-                    </span>
-                     Host Logical Processors
-                    <span class="badge">
-                        $($HostProcessors.LogicalProcessorCount)
-                    </span>
-                </p>
-            </div>
-            <div class="col-xs-6 col-md-6">
-                <div class="progress">
-                    <div class="progress-bar progress-bar-success" style="width:$(($runningVMs/$totalVMs)*100)%">
-                        <span>$runningVMs Online VMs</span>
-                            </div>
-                    <div class="progress-bar progress-bar-warning progress-bar-striped" style="width:$(($pausedVMs/$totalVMs)*100)%">
-                        <span>$pausedVMs Paused VMs</span>
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h3 class="vmname">Quick Stats</h3>
                     </div>
-                    <div class="progress-bar progress-bar-danger" style="width:$(($offlineVMs/$totalVMs)*100)%">
-                        <span>$offlineVMs Offline VMs</span>
+                    <div class="panel-body">
+                        <p class="text-center">
+                            <div class="btn-group btn-group-justified" role="group">
+                                <div class="btn-group role="group">
+                                <button type="button" class="btn btn-success">
+                                    Online vCPUs
+                                    <span class="badge">
+                                    $(($VMs | Where State -eq "Running" | Measure-Object ProcessorCount -Sum).Sum)
+                                    </span>
+                                </button>
+                                </div>
+                                <div class="btn-group role="group">
+                                <button type="button" class="btn btn-warning">Total vCPUs
+                                    <span class="badge">
+                                    $(($VMs | Measure-Object ProcessorCount -Sum).Sum)
+                                    </span></button>
+                                </div>
+                                <div class="btn-group role="group">
+                                <button type="button" class="btn btn-danger">Physical CPUs
+                                    <span class="badge">
+                                    $($HostProcessors.LogicalProcessorCount)
+                                    </span>
+                                </button>
+                                </div>
+                            </div>
+                        </p>
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-success" style="width:$(($runningVMs/$totalVMs)*100)%">
+                                <span>$runningVMs Online VMs</span>
+                            </div>
+                            <div class="progress-bar progress-bar-warning progress-bar-striped" style="width:$(($pausedVMs/$totalVMs)*100)%">
+                                <span>$pausedVMs Paused VMs</span>
+                            </div>
+                            <div class="progress-bar progress-bar-danger" style="width:$(($offlineVMs/$totalVMs)*100)%">
+                                <span>$offlineVMs Offline VMs</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-xs-12 col-md-12">
+            <div class="col-xs-6 col-md-6">
                 <div class="panel panel-$memoryOnlineProgressBar">
                     <div class="panel-heading">
                         <h3 class="vmname">Memory Usage</h3>
@@ -433,7 +549,7 @@ $body =
                     <div class="panel-heading">
                         <h3 class="vmname">Hard Drives</h3>
                     </div>
-                    <div class="panel-body" style="padding-top:0;padding-bottom:0">
+                    <div class="panel-body" style="padding-top:0;padding-bottom:0;">
                         <div class="row">
                             $harddriveString
                         </div>
@@ -441,98 +557,27 @@ $body =
                 </div>
             </div>
         </div>
-        <div class="page-header text-center"><h1>Virtual Machine Details<h1></div>
         <div class="row">
-"@
-
-#Create the individual VM panels
-Foreach ($VM in $VMs)
-{
-    $HardDrives = $VM.HardDrives
-
-    [float]$VHD_Used = ("{0:N2}" -f ((($driveArrMax.Get_Item($driveFor.Key))/1gb -as [float])/($HostDriveTotal/1gb -as [float]) * 100))
-    [float]$VHD_Used = ("{0:N2}" -f ((($driveArrUsed[$driveFor.Key].Used)/1gb -as [float])/($HostDriveTotal/1gb -as [float]) * 100))
-
-    $body += 
-@"
-            <div class="col-xs-6 col-md-4">
+            <div class="col-xs-12 col-md-12">
                 <div class="panel panel-primary">
-                    <div class="panel-heading">
-                        <h3 class="vmname panel-title">$($VM.Name)</h3>
-                        <p class="text-center"><span class="badge">$($VM.ProcessorCount) vCPU</span></p>
+                    <div class="panel-heading" style="margin-bottom:20px;">
+                        <h3 class="vmname">Virtual Machines</h3>
                     </div>
-                    <div class="panel-body">
-                        $(Switch($VM.State)
-                        {
-                            "Running" {'<button type="button" class="btn btn-success btn-block">Online</button>'; break;}
-                            "Paused" {'<button type="button" class="btn btn-warning btn-block">Paused</button>'; break;}
-                            "Off" {'<button type="button" class="btn btn-danger btn-block">Offline</button>'; break;}
-                            "Saved" {'<button type="button" class="btn btn-warning btn-block">Saved</button>'; break;}
-                            default {'<button type="button" class="btn btn-info btn-block">Other</button>'; break;}
-                        })
-                        <h4 class="text-center">RAM: $("{0:N2} GB" -f ($VM.MemoryAssigned/1gb -as [float])) of $("{0:N2} GB" -f ($VM.MemoryStartup/1gb -as [float]))</h4>
-                        <div class="progress">
-                            <div class="progress-bar progress-bar-striped active" role="progressbar" 
-                                aria-valuenow="$("{0:N2}" -f (($VM.MemoryAssigned/1gb -as [float])/($VM.MemoryStartup/1gb -as [float]) * 100)) aria-valuemin="0" aria-valuemax="100" style="width:$("{0:N2}" -f (($VM.MemoryAssigned/1gb -as [float])/($VM.MemoryStartup/1gb -as [float]) * 100))%">
-                            </div>
+                    <div class="panel-body" style="padding-top:0;padding-bottom:0;">
+                        <div class="row text-center">
+                            <div class="col-xs-3 col-md-3"><h4>Name</h4></div>
+                            <div class="col-xs-3 col-md-3"><h4>Memory</h4></div>
+                            <div class="col-xs-6 col-md-6"><h4>Hard Drives</h4></div>
+                            $vms_string
                         </div>
-                        <h4 class="text-center">Virtual Hard Drives </h4>
-                    </div>
-                    $(foreach($HardDrive in $HardDrives)
-                    {
-                        [float]$vhd_UsedPercent = ("{0:N2}" -f (($HardDrive.path | Get-VHD).FileSize/1gb –as [float])/(($HardDrive.path | Get-VHD).Size/1gb –as [float]) * 100)
-
-                        switch ($vhd_UsedPercent)
-                        {
-                            {$vhd_UsedPercent -gt 90.00} {$vhd_ProgressBar = "danger"; break}
-                            {$vhd_UsedPercent -gt 75.00} {$vhd_ProgressBar = "warning"; break}
-                            default {$vhd_ProgressBar = "success"}
-                        }
-
-                        $vhd_table +=
-@"
-                        <tr>
-                            <td>$($HardDrive.path.Substring(0,1))</td>
-                            <td>$($HardDrive.ControllerLocation)</td>
-                            <td>$("{0:N2} GB" -f (($HardDrive.path | Get-VHD).FileSize/1gb –as [float]))</td>
-                            <td>$("{0:N2} GB" -f (($HardDrive.path | Get-VHD).Size/1gb –as [float]))</td>
-                        </tr>
-"@
-                        $vhd_usedPB +=
-@"
-                    <div class="progress">
-                        <div class="progress-bar progress-bar-$vhd_ProgressBar progress-bar-striped" 
-                            aria-valuenow="$vhd_UsedPercent" aria-valuemin="0" 
-                            aria-valuemax="100" style="width:$vhd_UsedPercent%">
-                            <span>$vhd_UsedPercent%</span>
-                        </div>
-                    </div>
-"@
-                    })
-                    <table class="table table-striped table-condensed text-center">
-                        <tr>
-                            <th>Loc</th>
-                            <th>Disk</th>
-                            <th>Current Size</th>
-                            <th>Max Size</th>
-                        </tr>
-                        $vhd_table
-                    </table>
-                    <div class="panel-body">
-                    $vhd_usedPB
                     </div>
                 </div>
             </div>
+        </div>
 "@
-
-#Clear the VHD ForEach string variables
-$vhd_table = ""
-$vhd_usedPB = ""
-}
 
 $body +=
 @"
-        </div>
     </div>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
