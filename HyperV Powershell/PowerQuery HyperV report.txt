@@ -1,1 +1,0 @@
-Get-VM –VMname * | Select-Object VMId | Get-VHD | ConvertTo-HTML –Property path,computername,vhdtype, @{label=’Max Size(GB)’;expression={$_.size/1gb –as [int]}}, @{label=’Size(GB)’;expression={$_.filesize/1gb –as [int]}} > "C:\SimpleVHDReport.htm"

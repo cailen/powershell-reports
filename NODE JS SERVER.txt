@@ -1,6 +1,0 @@
-Server Login: 
- IP Address: 104.219.52.14
- Username: root
-Password: L9!gJKTw
-
-NODEJS
