@@ -828,11 +828,15 @@ $apiform = New-Object 'System.Collections.Generic.Dictionary[string,string]'
 $apiform.Add("document_html" , $document_html)
 $apiform.Add("test", "1")
 $apiform.Add("force", "1")
+$apiform.Add("margin-bottom", "0")
+$apiform.Add("margin-top", "0")
+$apiform.Add("margin-left", "0")
+$apiform.Add("margin-right", "0")
 
 #Write-Verbose (ConvertTo-Json $apiform) -Verbose
 #Write-Verbose $apiform -Verbose
 #Invoke-RestMethod -Uri ("$base" + "?access_key=$access_key&document_url=http://theonlycailen.com&test=1") | Set-Content "C:\$reportTitle on $reportDate.pdf"
-Invoke-RestMethod -Uri $base -Method Post -Body $apiform | Set-Content -Encoding Unicode "C:\$reportTitle on $reportDate.pdf"
+Invoke-RestMethod -Uri $base -Method Post -Body $apiform -OutFile "C:\$reportTitle on $reportDate.pdf"
 
 #region Clear variables
 rv access_key
@@ -853,6 +857,7 @@ rv ramCurrentPercent
 rv ramMaxPercent
 rv harddriveString
 rv apiform
+rv VHD_temp
 #endregion Clear Variables
 
 #OPEN THE HTML FILE
