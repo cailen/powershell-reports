@@ -361,7 +361,8 @@ Foreach ($VM in $VMs)
 
     foreach($HardDrive in $HardDrives)
     {
-        [float]$vhd_UsedPercent = ("{0:N2}" -f (($HardDrive.path | Get-VHD).FileSize/1gb –as [float])/(($HardDrive.path | Get-VHD).Size/1gb –as [float]) * 100)
+        $VHD_temp = $HardDrive.path | Get-VHD
+        [float]$vhd_UsedPercent = ("{0:N2}" -f ($VHD_temp.FileSize/1gb –as [float])/($VHD_temp.Size/1gb –as [float]) * 100)
 
         switch ($vhd_UsedPercent)
         {
@@ -374,8 +375,8 @@ Foreach ($VM in $VMs)
 <tr>
     <td>$($HardDrive.path.Substring(0,1))</td>
     <td>$($HardDrive.ControllerLocation)</td>
-    <td>$("{0:N2} GB" -f (($HardDrive.path | Get-VHD).FileSize/1gb –as [float]))</td>
-    <td>$("{0:N2} GB" -f (($HardDrive.path | Get-VHD).Size/1gb –as [float]))</td>
+    <td>$("{0:N2} GB" -f ($VHD_temp.FileSize/1gb –as [float]))</td>
+    <td>$("{0:N2} GB" -f ($VHD_temp.Size/1gb –as [float]))</td>
     <td>
         <div class="progress">
             <div class="progress-bar progress-bar-$vhd_ProgressBar progress-bar-striped" 
@@ -818,17 +819,22 @@ $body +=
 #endregion ::: BODY HTML
 
 #CREATE THE HTML FILE::Defaults to C:\
-ConvertTo-Html -Title $reportTitle -Head $header -Body $body | Set-Content  "C:\$reportTitle on $reportDate.htm"
-ConvertTo-Html -Title $reportTitle -Head $header -Body $body | Set-Content $document_html
+ConvertTo-Html -Title $reportTitle -Head $header -Body $body | Set-Content "C:\$reportTitle on $reportDate.htm"
+$document_html = ConvertTo-Html -Title $reportTitle -Head $header -Body $body
 
 $access_key = "9645192ce6040a9ae18f658104b2428b"
-$base = "http://api.pdflayer.com/api/convert"
+$base = "http://api.pdflayer.com/api/convert?access_key=9645192ce6040a9ae18f658104b2428b"
+$apiform = New-Object 'System.Collections.Generic.Dictionary[string,string]'
+$apiform.Add("document_html" , $document_html)
+$apiform.Add("test", "1")
+$apiform.Add("force", "1")
 
+#Write-Verbose (ConvertTo-Json $apiform) -Verbose
+#Write-Verbose $apiform -Verbose
 #Invoke-RestMethod -Uri ("$base" + "?access_key=$access_key&document_url=http://theonlycailen.com&test=1") | Set-Content "C:\$reportTitle on $reportDate.pdf"
-#Invoke-RestMethod -Uri ("$base" + "?access_key=$access_key&document_html=$document_html&test=1") # | Set-Content "C:\$reportTitle on $reportDate.pdf"
+Invoke-RestMethod -Uri $base -Method Post -Body $apiform | Set-Content -Encoding Unicode "C:\$reportTitle on $reportDate.pdf"
 
 #region Clear variables
-rv document_html
 rv access_key
 rv base
 rv body
@@ -846,8 +852,9 @@ rv ramOnlinePercent
 rv ramCurrentPercent
 rv ramMaxPercent
 rv harddriveString
+rv apiform
 #endregion Clear Variables
 
 #OPEN THE HTML FILE
-Invoke-Item "C:\$reportTitle on $reportDate.htm"
+Invoke-Item "C:\$reportTitle on $reportDate.pdf"
 #BYE
