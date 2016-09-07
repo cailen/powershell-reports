@@ -819,28 +819,34 @@ $body +=
 #endregion ::: BODY HTML
 
 #CREATE THE HTML FILE::Defaults to C:\
-ConvertTo-Html -Title $reportTitle -Head $header -Body $body | Set-Content "C:\$reportTitle on $reportDate.htm"
+#ConvertTo-Html -Title $reportTitle -Head $header -Body $body | Set-Content "C:\$reportTitle on $reportDate.htm"
+
+
+#region Create PDF
+#---- Note that this only will work if there is an internet connection, as it has to reach out to the API ---#
+#---- This uses pdflayer.com's API. The margins need to be set to 0 all the time to avoid the tables being --#
+#---- Shoved off the ends of the page. If DEVELOPING, please change the test variable to 1 ------------------#
+
 $document_html = ConvertTo-Html -Title $reportTitle -Head $header -Body $body
 
+#Make sure test is set to 1 if developing!!!!
+$test = 0
+# support@atlantic.net access key for pdflayer.com
 $access_key = "9645192ce6040a9ae18f658104b2428b"
-$base = "http://api.pdflayer.com/api/convert?access_key=9645192ce6040a9ae18f658104b2428b"
-$apiform = New-Object 'System.Collections.Generic.Dictionary[string,string]'
-$apiform.Add("document_html" , $document_html)
-$apiform.Add("test", "1")
-$apiform.Add("force", "1")
-$apiform.Add("margin-bottom", "0")
-$apiform.Add("margin-top", "0")
-$apiform.Add("margin-left", "0")
-$apiform.Add("margin-right", "0")
+
+$uri = "http://api.pdflayer.com/api/convert?access_key=$access_key&test=$test&margin_bottom=0&margin_top=0&margin_right=0&margin_left=0"
+
+$api_body = New-Object 'System.Collections.Generic.Dictionary[string,string]'
+$api_body.Add("document_html" , $document_html)
 
 #Write-Verbose (ConvertTo-Json $apiform) -Verbose
 #Write-Verbose $apiform -Verbose
 #Invoke-RestMethod -Uri ("$base" + "?access_key=$access_key&document_url=http://theonlycailen.com&test=1") | Set-Content "C:\$reportTitle on $reportDate.pdf"
-Invoke-RestMethod -Uri $base -Method Post -Body $apiform -OutFile "C:\$reportTitle on $reportDate.pdf"
+Invoke-RestMethod -Method Post -Uri $uri -Body $api_body -Verbose -OutFile "C:\$reportTitle on $reportDate.pdf"
+
+#endregion Create PDF
 
 #region Clear variables
-rv access_key
-rv base
 rv body
 rv TotalHddMax
 rv TotalHddCurrent
@@ -856,9 +862,15 @@ rv ramOnlinePercent
 rv ramCurrentPercent
 rv ramMaxPercent
 rv harddriveString
-rv apiform
 rv VHD_temp
 #endregion Clear Variables
+
+#region API/PDF Clear Vars
+rv api_body
+rv document_html
+rv access_key
+rv uri
+#endregion AP/PDF Clear Vars
 
 #OPEN THE HTML FILE
 Invoke-Item "C:\$reportTitle on $reportDate.pdf"
