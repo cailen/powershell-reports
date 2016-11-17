@@ -1,14 +1,15 @@
 ﻿[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
-Remove-Variable session
 
 #$servername = Read-Host -Prompt 'What is the server IP?'
 $servername = "209.208.48.68"
+
 #$uri = 'https://'+$servername+':8006/api2/json/'
-$uri = 'https://209.208.48.68:8006/api2/json'
+$uri = 'https://209.208.48.68:8006/api2/json/'
 
 $ticketuri = $uri+'access/ticket'
-$C = Get-Credential -Message 'Enter the server login'
+#$C = Get-Credential -Message 'Enter the server login'
 
+#==========Authenticate with the Server===========
 #$ticket = Invoke-RestMethod -Method Post -uri $ticketuri -body ('username='+$C.UserName+'@pam&password='+$C.GetNetworkCredential().Password) -Verbose
 #$ticket = Invoke-WebRequest -Method Post -uri $ticketuri -Credential $C -Verbose
 $ticket = Invoke-RestMethod -Method Post -uri $ticketuri -body ('username=root@pam&password=Nrprocks!') -Verbose
@@ -19,14 +20,25 @@ $cookie.Name = "PVEAuthCookie"
 $cookie.Value = $ticket.data.ticket
 $cookie.Domain = $servername
 $session.Cookies.Add($cookie);
+#=================================================
 
-$results = Invoke-RestMethod -uri ($uri+'nodes/') -WebSession $session -Verbose
-$results2 = Invoke-RestMethod -uri ($uri+'nodes/300-2058/qemu') -WebSession $session -Verbose
-#$node = $results.data.node
-#$results = Invoke-RestMethod -uri ($uri+'nodes/'+$node+'/lxc') -WebSession $session -Verbose
-$results
+$nodes = Invoke-RestMethod -uri ($uri+'nodes/') -WebSession $session -Verbose
 
-##Need to check that there is just one NODE
-$results.data.Count
+foreach ($node in $nodes.data) {
+    $qemus = Invoke-RestMethod -uri ($uri+'nodes/'+$node.node+'/qemu') -WebSession $session -Verbose
+    foreach ($qemu in $qemus.data) {
+        #will need to popular the {storage} name since it won't always be local
+        $content = Invoke-RestMethod -uri ($uri+'nodes/'+$node.node+'/storage/local/content') -WebSession $session -Verbose
+        foreach ($item in $content.data) {
+            if ($item.content -eq "images") {
+                if($item.vmid -eq $qemu.vmid)
+                {
+                    $item
+                }
+            }
+        }
+    }
+}
+    
 
-$results.data.node
+Remove-Variable session
