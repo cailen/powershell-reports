@@ -1,4 +1,17 @@
-﻿[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
+﻿add-type @"
+    using System.Net;
+    using System.Security.Cryptography.X509Certificates;
+    
+    public class IDontCarePolicy : ICertificatePolicy {
+        public IDontCarePolicy() {}
+        public bool CheckValidationResult(
+            ServicePoint sPoint, X509Certificate cert,
+            WebRequest wRequest, int certProb) {
+            return true;
+        }
+    }
+"@
+[System.Net.ServicePointManager]::CertificatePolicy = new-object IDontCarePolicy 
 
 $servername = Read-Host -Prompt 'What is the server IP?'
 $uri = 'https://'+$servername+':8006/api2/json/'
@@ -13,6 +26,13 @@ $cookie.Value = $ticket.data.ticket
 $cookie.Domain = $servername
 $session.Cookies.Add($cookie);
 #=================================================
+
+Invoke-RestMethod -uri ($uri+'nodes/') -WebSession $session -Verbose
+
+$nodes = Invoke-RestMethod -uri ($uri+'nodes/') -WebSession $session -Verbose
+#This foreach will probably need to go beyond beyond everything to work for multiple nodes
+foreach ($node in $nodes.data) {
+if ($node.uptime){
 
 #region ::: Variables
 $TotalHddMax = 0.00
@@ -37,25 +57,24 @@ $hddOnlinePercent = 0.00
 $hddCurrentPercent = 0.00
 $harddriveString = ""
 
-Invoke-WebRequest -uri ($uri+'nodes/') -WebSession $session -Verbose
-
-$nodes = Invoke-RestMethod -uri ($uri+'nodes/') -WebSession $session -Verbose
-#This foreach will probably need to go beyond beyond everything to work for multiple nodes
-foreach ($node in $nodes.data) {
     $qemus = Invoke-RestMethod -uri ($uri+'nodes/'+$node.node+'/qemu') -WebSession $session -Verbose
+
     $lxcs = Invoke-RestMethod -uri ($uri+'nodes/'+$node.node+'/lxc') -WebSession $session -Verbose
+
     $storages = Invoke-RestMethod -uri ($uri+'nodes/'+$node.node+'/storage') -WebSession $session -Verbose
+
     foreach ($storage in $storages.data) {
         $tempcontent = Invoke-RestMethod -uri ($uri+'nodes/'+$node.node+'/storage/'+$storage.storage+'/content') -WebSession $session -Verbose
         $content = $content + $tempcontent.data
     }
-}
 
-$reportTitle = "Proxmox Report for $($nodes.data[0].node)"
+
+$reportTitle = "Proxmox Report for $($node.node)"
 $reportDate = "$(Get-Date -Format "MM-dd-yyyy")"
 
-$HostMemory = $nodes.data | Select maxmem
-$HostProcessors = $nodes.data | Select maxcpu
+$HostMemory = $node | Select maxmem
+$HostMemory
+$HostProcessors = $node | Select maxcpu
 $VHDs = $content | Where content -eq "images" | Select vmid, size, used, volid | Sort vmid
 $Storages = $storages.data | Select storage, total, used, avail #$driveLetters = gdr -PSProvider 'FileSystem' | Select Name, Used, Free 
 
@@ -449,10 +468,10 @@ Foreach ($VM in $VMs)
 
     $(Switch($VM.status)
     {
-        "Running" {$VM_style = "success"; $VM_state = '<span class="glyphicon glyphicon-play" style="font-size:1.6em;"></span>'; break;}
-        "Paused" {$VM_style = "warning"; $VM_state = '<span class="glyphicon glyphicon-pause" style="font-size:1.6em;"></span>'; break;}
+        "running" {$VM_style = "success"; $VM_state = '<span class="glyphicon glyphicon-play" style="font-size:1.6em;"></span>'; break;}
+        "paused" {$VM_style = "warning"; $VM_state = '<span class="glyphicon glyphicon-pause" style="font-size:1.6em;"></span>'; break;}
         "stopped" {$VM_style = "danger"; $VM_state = '<span class="glyphicon glyphicon-stop" style="font-size:1.6em;"></span>'; break;}
-        "Saved" {$VM_style = "warning"; $VM_state = '<span class="glyphicon glyphicon-save" style="font-size:1.6em;"></span>'; break;}
+        "saved" {$VM_style = "warning"; $VM_state = '<span class="glyphicon glyphicon-save" style="font-size:1.6em;"></span>'; break;}
         default {$VM_style = "info"; $VM_state = '<span class="glyphicon glyphicon-asterisk" style="font-size:1.6em;"></span>'; break;}
     })
 
@@ -542,10 +561,10 @@ Foreach ($LXC in $LXCs)
 
     $(Switch($LXC.status)
     {
-        "Running" {$VM_style = "success"; $VM_state = '<span class="glyphicon glyphicon-play" style="font-size:1.6em;"></span>'; break;}
-        "Paused" {$VM_style = "warning"; $VM_state = '<span class="glyphicon glyphicon-pause" style="font-size:1.6em;"></span>'; break;}
+        "running" {$VM_style = "success"; $VM_state = '<span class="glyphicon glyphicon-play" style="font-size:1.6em;"></span>'; break;}
+        "paused" {$VM_style = "warning"; $VM_state = '<span class="glyphicon glyphicon-pause" style="font-size:1.6em;"></span>'; break;}
         "stopped" {$VM_style = "danger"; $VM_state = '<span class="glyphicon glyphicon-stop" style="font-size:1.6em;"></span>'; break;}
-        "Saved" {$VM_style = "warning"; $VM_state = '<span class="glyphicon glyphicon-save" style="font-size:1.6em;"></span>'; break;}
+        "saved" {$VM_style = "warning"; $VM_state = '<span class="glyphicon glyphicon-save" style="font-size:1.6em;"></span>'; break;}
         default {$VM_style = "info"; $VM_state = '<span class="glyphicon glyphicon-asterisk" style="font-size:1.6em;"></span>'; break;}
     })
 
@@ -913,13 +932,13 @@ $body =
                             </div>
                         </p>
                         <div class="progress">
-                            <div class="progress-bar progress-bar-success progress-bar-striped active" style="width:$((($runningVMs+$runningLXCs)/($totalVMs+$totalLXCs))*100)%">
+                            <div class="progress-bar progress-bar-success progress-bar-striped active" style="width:$(if(($runningVMs+$runningLXCs) -gt 0){(($runningVMs+$runningLXCs)/($totalVMs+$totalLXCs))*100}else{0})%">
                                 <span>$runningVMs VMs & $runningLXCs LXCs Online</span>
                             </div>
-                            <div class="progress-bar progress-bar-warning progress-bar-striped" style="width:$((($pausedVMs+$pausedLXCs)/($totalVMs+$totalLXCs))*100)%">
+                            <div class="progress-bar progress-bar-warning progress-bar-striped" style="width:$(if(($pausedVMs+$pausedLXCs) -gt 0){(($pausedVMs+$pausedLXCs)/($totalVMs+$totalLXCs))*100}else{0})%">
                                 <span>$pausedVMs VMs & $pausedLXCs LXCs Paused</span>
                             </div>
-                            <div class="progress-bar progress-bar-danger" style="width:$((($offlineVMs+$offlineLXCs)/($totalVMs+$totalLXCs))*100)%">
+                            <div class="progress-bar progress-bar-danger" style="width:$(if(($offlineVMs+$offlineLXCs) -gt 0){(($offlineVMs+$offlineLXCs)/($totalVMs+$totalLXCs))*100}else{0})%">
                                 <span>$offlineVMs VMs & $offlineLXCs LXCs Offline</span>
                             </div>
                         </div>
@@ -1035,11 +1054,11 @@ $body +=
 $document_html = ConvertTo-Html -Title $reportTitle -Head $header -Body $body
 
 #Make sure test is set to 1 if developing!!!!
-$test = 0
+$test = 1
 # support@atlantic.net access key for pdflayer.com
 $access_key = "9645192ce6040a9ae18f658104b2428b"
 
-$uri = "http://api.pdflayer.com/api/convert?access_key=$access_key&test=$test&margin_bottom=0&margin_top=0&margin_right=0&margin_left=0"
+$api_uri = "http://api.pdflayer.com/api/convert?access_key=$access_key&test=$test&margin_bottom=0&margin_top=0&margin_right=0&margin_left=0"
 
 $api_body = New-Object 'System.Collections.Generic.Dictionary[string,string]'
 $api_body.Add("document_html" , $document_html)
@@ -1047,9 +1066,10 @@ $api_body.Add("document_html" , $document_html)
 #Write-Verbose (ConvertTo-Json $apiform) -Verbose
 #Write-Verbose $apiform -Verbose
 #Invoke-RestMethod -Uri ("$base" + "?access_key=$access_key&document_url=http://theonlycailen.com&test=1") | Set-Content "C:\$reportTitle on $reportDate.pdf"
-Invoke-RestMethod -Method Post -Uri $uri -Body $api_body -Verbose -OutFile "C:\$reportTitle on $reportDate.pdf"
+Invoke-RestMethod -Method Post -Uri $api_uri -Body $api_body -Verbose -OutFile "C:\$reportTitle on $reportDate.pdf"
 
 #endregion Create PDF
+
 
 #region Clear variables
 rv body
@@ -1067,6 +1087,26 @@ rv ramOnlinePercent
 rv ramCurrentPercent
 rv ramMaxPercent
 rv harddriveString
+rv runningLXCs
+rv pausedLXCs
+rv offlineLXCs
+rv totalLXCs
+rv api_uri
+#endregion Clear Variables
+
+#region API/PDF Clear Vars
+
+#endregion AP/PDF Clear Vars
+
+
+
+#OPEN THE HTML FILE
+Invoke-Item "C:\$reportTitle on $reportDate.pdf"
+#BYE
+}
+
+}
+Remove-Variable session
 rv VHD_temp
 rv nodes
 rv qemus
@@ -1074,21 +1114,7 @@ rv lxcs
 rv storages
 rv content
 rv tempcontent
-rv runningLXCs
-rv pausedLXCs
-rv offlineLXCs
-rv totalLXCs
-#endregion Clear Variables
-
-#region API/PDF Clear Vars
 rv api_body
 rv document_html
 rv access_key
 rv uri
-#endregion AP/PDF Clear Vars
-
-Remove-Variable session
-
-#OPEN THE HTML FILE
-Invoke-Item "C:\$reportTitle on $reportDate.pdf"
-#BYE

@@ -5,16 +5,16 @@ $TotalHddOnline = 0.00
 $TotalRamMax = 0.00
 $TotalRamCurrent = 0.00
 $TotalRamOnline = 0.00
-$HostMemory = Get-VMHost | Select MemoryCapacity
-$HostProcessors = Get-VMHost | Select LogicalProcessorCount
+$HostMemory = Get-VMHost | Select-Object MemoryCapacity
+$HostProcessors = Get-VMHost | Select-Object LogicalProcessorCount
 $VMs = Get-VM
-$runningVMs = ($VMs | Where State -eq "Running" | Measure).Count
-$pausedVMs = ($VMs | Where {($_.State -eq "Paused") -or ($_.State -eq "Saved")} | Measure).Count
-$offlineVMs = ($VMs | Where State -eq "Off" | Measure).Count
+$runningVMs = ($VMs | Where-Object State -eq "Running" | Measure-Object).Count
+$pausedVMs = ($VMs | Where-Object {($_.State -eq "Paused") -or ($_.State -eq "Saved")} | Measure-Object).Count
+$offlineVMs = ($VMs | Where-Object State -eq "Off" | Measure-Object).Count
 $totalVMs = ($VMs).Count
 $reportTitle = "Hyper-V Report for $((Get-VMHost).Name)"
 $reportDate = "$(Get-Date -Format "MM-dd-yyyy")"
-$driveLetters = gdr -PSProvider 'FileSystem' | Select Name, Used, Free 
+$driveLetters = Get-PSDrive -PSProvider 'FileSystem' | Select-Object Name, Used, Free 
 $driveArrCurrent = New-Object 'System.Collections.Generic.Dictionary[string,double]'
 $driveArrOnline = New-Object 'System.Collections.Generic.Dictionary[string,double]'
 $driveArrMax = New-Object 'System.Collections.Generic.Dictionary[string,double]'
@@ -42,7 +42,7 @@ Foreach ($VM in $VMs)
         $TotalRamOnline += $VM.MemoryStartup
     } 
 
-    $VHDs = $VM | Get-VMHardDiskDrive | Get-VHD | Select Path, FileSize, Size
+    $VHDs = $VM | Get-VMHardDiskDrive | Get-VHD | Select-Object Path, FileSize, Size
 
 
     #Fill the drive stats dictionary (Key=Drive Letter, Value=Size)
@@ -64,8 +64,8 @@ Foreach ($VM in $VMs)
                 $driveArrMax[$VHD.Path.Substring(0,1)] += $VHD.Size -as [float]
                 $driveArrCurrent[$VHD.Path.Substring(0,1)] += $VHD.FileSize -as [float]
                 $driveArrOnline[$VHD.Path.Substring(0,1)] += $VHD.Size -as [float]
-                $driveArrFree.Add($VHD.Path.Substring(0,1),($driveLetters | Where Name -ieq $VHD.Path.Substring(0,1) | Select Free))
-                $driveArrUsed.Add($VHD.Path.Substring(0,1),($driveLetters | Where Name -ieq $VHD.Path.Substring(0,1) | Select Used))
+                $driveArrFree.Add($VHD.Path.Substring(0,1),($driveLetters | Where-Object Name -ieq $VHD.Path.Substring(0,1) | Select-Object Free))
+                $driveArrUsed.Add($VHD.Path.Substring(0,1),($driveLetters | Where-Object Name -ieq $VHD.Path.Substring(0,1) | Select-Object Used))
             }
         }
         else
@@ -77,8 +77,8 @@ Foreach ($VM in $VMs)
             else
             {
                 $driveArrMax[$VHD.Path.Substring(0,1)] += $VHD.Size
-                $driveArrFree.Add($VHD.Path.Substring(0,1),($driveLetters | Where Name -ieq $VHD.Path.Substring(0,1) | Select Free))
-                $driveArrUsed.Add($VHD.Path.Substring(0,1),($driveLetters | Where Name -ieq $VHD.Path.Substring(0,1) | Select Used))
+                $driveArrFree.Add($VHD.Path.Substring(0,1),($driveLetters | Where-Object Name -ieq $VHD.Path.Substring(0,1) | Select-Object Free))
+                $driveArrUsed.Add($VHD.Path.Substring(0,1),($driveLetters | Where-Object Name -ieq $VHD.Path.Substring(0,1) | Select-Object Used))
             }
         }
     }
@@ -697,7 +697,7 @@ $body =
 										<div class="panel-heading">
 											Online vCPUs
 											<span class="badge">
-											$(($VMs | Where State -eq "Running" | Measure-Object ProcessorCount -Sum).Sum)
+											$(($VMs | Where-Object State -eq "Running" | Measure-Object ProcessorCount -Sum).Sum)
 											</span>
 										</div>
 									</div>
@@ -847,29 +847,29 @@ Invoke-RestMethod -Method Post -Uri $uri -Body $api_body -Verbose -OutFile "C:\$
 #endregion Create PDF
 
 #region Clear variables
-rv body
-rv TotalHddMax
-rv TotalHddCurrent
-rv TotalHddOnline
-rv header
-rv TotalRamMax
-rv TotalRamCurrent
-rv TotalRamOnline
-rv hddMaxPercent 
-rv hddOnlinePercent 
-rv hddCurrentPercent
-rv ramOnlinePercent
-rv ramCurrentPercent
-rv ramMaxPercent
-rv harddriveString
-rv VHD_temp
+Remove-Variable body
+Remove-Variable TotalHddMax
+Remove-Variable TotalHddCurrent
+Remove-Variable TotalHddOnline
+Remove-Variable header
+Remove-Variable TotalRamMax
+Remove-Variable TotalRamCurrent
+Remove-Variable TotalRamOnline
+Remove-Variable hddMaxPercent 
+Remove-Variable hddOnlinePercent 
+Remove-Variable hddCurrentPercent
+Remove-Variable ramOnlinePercent
+Remove-Variable ramCurrentPercent
+Remove-Variable ramMaxPercent
+Remove-Variable harddriveString
+Remove-Variable VHD_temp
 #endregion Clear Variables
 
 #region API/PDF Clear Vars
-rv api_body
-rv document_html
-rv access_key
-rv uri
+Remove-Variable api_body
+Remove-Variable document_html
+Remove-Variable access_key
+Remove-Variable uri
 #endregion AP/PDF Clear Vars
 
 #OPEN THE HTML FILE
