@@ -4,11 +4,9 @@ $servername = Read-Host -Prompt 'What is the server IP?'
 $uri = 'https://'+$servername+':8006/api2/json/'
 $ticketuri = $uri+'access/ticket'
 $C = Get-Credential -Message 'Enter the server login'
-
+$passwd = [uri]::EscapeDataString($C.GetNetworkCredential().Password)
 #==========Authenticate with the Server===========
-$ticket = Invoke-RestMethod -Method Post -uri $ticketuri -body ('username='+$C.UserName+'@pam&password='+$C.GetNetworkCredential().Password) -Verbose
-
-$session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+$ticket = Invoke-RestMethod -Method Post -uri $ticketuri -body ('username='+$C.UserName+'@pam&password='+$passwd) -SessionVariable session -Verbose
 $cookie = New-Object System.Net.Cookie    
 $cookie.Name = "PVEAuthCookie"
 $cookie.Value = $ticket.data.ticket
@@ -38,6 +36,8 @@ $hddMaxPercent = 0.00
 $hddOnlinePercent = 0.00
 $hddCurrentPercent = 0.00
 $harddriveString = ""
+
+Invoke-WebRequest -uri ($uri+'nodes/') -WebSession $session -Verbose
 
 $nodes = Invoke-RestMethod -uri ($uri+'nodes/') -WebSession $session -Verbose
 #This foreach will probably need to go beyond beyond everything to work for multiple nodes
@@ -1092,4 +1092,3 @@ Remove-Variable session
 #OPEN THE HTML FILE
 Invoke-Item "C:\$reportTitle on $reportDate.pdf"
 #BYE
-
