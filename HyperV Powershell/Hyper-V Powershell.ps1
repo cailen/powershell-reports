@@ -842,7 +842,7 @@ $api_body.Add("document_html" , $document_html)
 #Write-Verbose (ConvertTo-Json $apiform) -Verbose
 #Write-Verbose $apiform -Verbose
 #Invoke-RestMethod -Uri ("$base" + "?access_key=$access_key&document_url=http://theonlycailen.com&test=1") | Set-Content "C:\$reportTitle on $reportDate.pdf"
-Invoke-RestMethod -Method Post -Uri $uri -Body $api_body -Verbose -OutFile "C:\$reportTitle on $reportDate.pdf"
+Invoke-RestMethod -Method Post -Uri $uri -Body $api_body -Verbose -OutFile "$([Environment]::GetFolderPath("Desktop"))\$reportTitle on $reportDate.pdf"
 
 #endregion Create PDF
 
@@ -873,5 +873,5 @@ Remove-Variable uri
 #endregion AP/PDF Clear Vars
 
 #OPEN THE HTML FILE
-Invoke-Item "C:\$reportTitle on $reportDate.pdf"
+Invoke-Item "$([Environment]::GetFolderPath("Desktop"))\$reportTitle on $reportDate.pdf"
 #BYE
