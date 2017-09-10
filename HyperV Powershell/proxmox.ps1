@@ -682,16 +682,12 @@ foreach ($node in $nodes.data) {
         }
         
         .panel-info> .panel-heading {
-            background: #4b91db;
+            background: #0079c6;
             color: #ffffff;
         }
         
         body {
             background: #263746;
-        }
-        
-        .container {
-            background: #ECEFF1;
         }
         
         .progress {
@@ -792,7 +788,7 @@ foreach ($node in $nodes.data) {
                 margin: 0;
                 padding 0 !important;
                 min-width: 768px;
-				background: #fff;
+				background: #263746;
             }
             .container {
                 width: auto;
