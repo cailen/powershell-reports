@@ -61,7 +61,7 @@ foreach ($node in $nodes.data) {
             $content = $content + $tempcontent.data
         }
 
-        $reportTitle = "Proxmox Report for $($node.node)"
+        $reportTitle = "Private Cloud Report for $($node.node)"
         $reportDate = "$(Get-Date -Format "MM-dd-yyyy")"
 
         $HostMemory = $node | Select-Object maxmem
@@ -647,7 +647,7 @@ foreach ($node in $nodes.data) {
         }
         
         .btn-info {
-            background: #4b91db;
+            background: #0079c6;
             color: #ffffff;
             border: 0;
         }
@@ -655,6 +655,7 @@ foreach ($node in $nodes.data) {
         .panel {
             border: 0;
             box-shadow: 0 4px 5px 0 rgba(0, 0, 0, .14), 0 1px 10px 0 rgba(0, 0, 0, .12), 0 2px 4px -1px rgba(0, 0, 0, .2);
+            background: DADFE1
         }
         
         .panel-success> .panel-heading {
@@ -691,7 +692,7 @@ foreach ($node in $nodes.data) {
         }
         
         .progress {
-            background: #CFD8DC;
+            background: #778692;
         }
         
         .progress> .progress-bar-primary {
