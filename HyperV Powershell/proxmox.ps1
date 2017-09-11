@@ -699,7 +699,7 @@ foreach ($node in $nodes.data) {
             background: #0079c6;
         }
 
-        .progress> .progress-bar-primary {
+        .progress> .progress-bar-success {
             background: #77D843;
         }
 
