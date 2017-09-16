@@ -294,7 +294,7 @@ elseif ($ramMaxPercent -ge $ramOnlinePercent) {
         $ramMaxPercent = 0
     }
 }
-else
+else {
 # if($ramCurrentPercent -ge $ramOnlinePercent)
 # Since current usage is higher than other metrics, the rest are set to 0 {
 $ramOnlinePercent = 0
