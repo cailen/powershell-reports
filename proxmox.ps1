@@ -30,7 +30,7 @@ $session.Cookies.Add($cookie);
 Invoke-RestMethod -uri ($uri + 'nodes/') -WebSession $session -Verbose
 
 $nodes = Invoke-RestMethod -uri ($uri + 'nodes/') -WebSession $session -Verbose
-#This foreach will probably need to go beyond beyond everything to work for multiple nodes
+
 foreach ($node in $nodes.data) {
     if ($node.uptime) {
         $TotalRamMax = 0.00
@@ -68,7 +68,7 @@ foreach ($node in $nodes.data) {
         $HostMemory
         $HostProcessors = $node | Select-Object maxcpu
         $VHDs = $content | Where-Object content -eq "images" | Select-Object vmid, size, used, volid | Sort-Object vmid
-        $Storages = $storages.data | Select-Object storage, total, used, avail #$driveLetters = gdr -PSProvider 'FileSystem' | Select Name, Used, Free 
+        $Storages = $storages.data | Select-Object storage, total, used, avail
 
         $VMs = $qemus.data | Select-Object vmid, name, status, mem, maxmem, cpus | Sort-Object vmid
         $LXCs = $lxcs.data | Select-Object vmid, name, status, mem, maxmem, cpus | Sort-Object vmid
@@ -91,8 +91,6 @@ foreach ($node in $nodes.data) {
             if ($VM.status -eq "running") {
                 $TotalRamOnline += $VM.maxmem
             }
-
-            #$VHDs = $VM | Get-VMHardDiskDrive | Get-VHD | Select Path, FileSize, Size
 
             #Fill the drive stats dictionary (Key=Drive Letter, Value=Size)
             foreach ($VHD in ($VHDs | Where-Object vmid -eq $VM.vmid)) {
@@ -137,8 +135,6 @@ foreach ($node in $nodes.data) {
             if ($LXC.status -eq "running") {
                 $TotalRamOnline += $LXC.maxmem
             }
-
-            #$VHDs = $VM | Get-VMHardDiskDrive | Get-VHD | Select Path, FileSize, Size
 
             #Fill the drive stats dictionary (Key=Drive Letter, Value=Size)
             foreach ($VHD in ($VHDs | Where-Object vmid -eq $LXC.vmid)) {
@@ -830,7 +826,6 @@ foreach ($node in $nodes.data) {
         @"
     <div class="container" style="padding-top: 5px;">
         <div class="jumbotron text-center" style="background-color: #0079c6; color:white; height:400px; padding-top:10px; padding-bottom:10px; margin-bottom:20px;">
-			<svg xmlns="http://www.w3.org/2000/svg" height="100" width="200" viewBox="0 0 579.06 242.58"><title>Atlantic.Net</title><path class="a" d="M107.93,251.59q0,6.91-2.51,10.65a8,8,0,0,1-7,3.74,6.74,6.74,0,0,1-5.27-2.33,8.72,8.72,0,0,1-2.07-6,11.62,11.62,0,0,1,4.54-9.16q4.55-3.83,12.32-4.84v8Zm8.76,25.32a19.45,19.45,0,0,0,9.26,2c0.79,0,1.4,0,1.81,0s0.79-.06,1.13-0.11l0.06-13.32a4.09,4.09,0,0,1-2.38-1.48,4.39,4.39,0,0,1-.83-2.73V231.81q0-11.67-6.53-17.6t-19.28-5.93a40.73,40.73,0,0,0-13.63,2.19,38.16,38.16,0,0,0-11.62,6.63l8.38,10.72a38.54,38.54,0,0,1,8.35-5.28,18.59,18.59,0,0,1,7.47-1.68,10.41,10.41,0,0,1,6.56,1.93,6.09,6.09,0,0,1,2.48,5v5.35q-17,2.32-25.52,9.26t-8.48,18.42q0,8.54,4.74,13.72t12.6,5.18a22.26,22.26,0,0,0,9.74-2.2,36.71,36.71,0,0,0,9.49-7A15.41,15.41,0,0,0,116.68,276.91Z" transform="translate(-73.92 -37.44)"/><path class="a" d="M144.61,279.91V222.26H129.36V208.53h46.19v13.73H160v57.65H144.61Z" transform="translate(-73.92 -37.44)"/><path class="a" d="M211.59,279.66h-7.74c-15.36,0-22.41-7.17-22.41-21.44V208.38h17.21s0.14,43.42.14,48.42c0,4.49,2.29,7.1,6.51,7.1h6.2Z" transform="translate(-73.92 -37.44)"/><path class="a" d="M249.22,251.71q0,6.88-2.5,10.6a8,8,0,0,1-7,3.72,6.71,6.71,0,0,1-5.24-2.31,8.67,8.67,0,0,1-2.06-6,11.57,11.57,0,0,1,4.53-9.13q4.53-3.82,12.27-4.82v7.94Zm8.72,25.21a19.34,19.34,0,0,0,9.22,2q1.18,0,1.81,0t1.12-.11l0.06-13.27a4.07,4.07,0,0,1-2.37-1.47,4.38,4.38,0,0,1-.83-2.72V232q0-11.62-6.5-17.52t-19.2-5.91a40.61,40.61,0,0,0-13.57,2.18,38,38,0,0,0-11.57,6.61L224.45,228a38.42,38.42,0,0,1,8.32-5.26,18.51,18.51,0,0,1,7.44-1.67,10.35,10.35,0,0,1,6.53,1.92,6.06,6.06,0,0,1,2.47,5v5.33q-17,2.31-25.41,9.22t-8.45,18.35q0,8.5,4.72,13.66t12.55,5.16a22.22,22.22,0,0,0,9.7-2.18,36.61,36.61,0,0,0,9.45-6.93A15.3,15.3,0,0,0,257.94,276.92Z" transform="translate(-73.92 -37.44)"/><path class="a" d="M277.6,279.69V209.93h18.16v13.31q5.23-7.63,10.5-11.22a19.54,19.54,0,0,1,11.2-3.59q7.08,0,10.91,4.39t3.83,12.41v54.46H314.05V236.22q0-6.84-1.28-8.85t-4.72-2a11.78,11.78,0,0,0-5.77,1.76,31.56,31.56,0,0,0-6.53,5.21v47.36H277.6Z" transform="translate(-73.92 -37.44)"/><path class="a" d="M415.44,238.41q0-10.4,1.36-15.17a18.89,18.89,0,0,1,4.65-8.16,19.89,19.89,0,0,1,7.32-4.68,27.28,27.28,0,0,1,9.62-1.61q9.76,0,16.23,5.47a16.92,16.92,0,0,1,6.46,13.42v4.09H446.22q-0.18-5.22-2-7.58t-5.76-2.36q-4.37,0-6.06,2.38t-1.69,11.63v17.06q0,8.83,1.67,11.42t6.08,2.58q4.14,0,5.94-2.52t1.8-8.36v-1h14.91v4.53a19,19,0,0,1-6.26,14.79Q448.57,280,438.4,280a27.33,27.33,0,0,1-9.62-1.6,19.91,19.91,0,0,1-7.32-4.68,18.88,18.88,0,0,1-4.65-8.16q-1.36-4.77-1.36-15.17v-12Z" transform="translate(-73.92 -37.44)"/><path class="a" d="M494,279.73v-69.8h18.17v13.31q5.24-7.63,10.51-11.22a19.55,19.55,0,0,1,11.21-3.59q7.09,0,10.92,4.4t3.83,12.41v54.49H530.47V236.24q0-6.84-1.28-8.86t-4.72-2a11.8,11.8,0,0,0-5.77,1.76,31.63,31.63,0,0,0-6.54,5.21v47.39H494Z" transform="translate(-73.92 -37.44)"/><path class="a" d="M571.85,231.28q0-5.1,2.19-8a7.84,7.84,0,0,1,12.16-.06q2.06,2.86,2.07,8.52v5.84H571.85v-6.28Zm29.58,30a53.77,53.77,0,0,1-8.81,3.4,28.18,28.18,0,0,1-7.44,1.11q-6.33,0-9.83-3.23t-3.5-9.06v-5.86h31.39V233q0-11.36-6.33-17.88t-17.32-6.52q-11.8,0-18,7t-6.24,20.31v16q0,13.47,6.86,20.61T582,279.67a47.23,47.23,0,0,0,10.4-1.21,69.07,69.07,0,0,0,11.21-3.63Z" transform="translate(-73.92 -37.44)"/><path class="a" d="M352.28,279.92V222.26H337V208.54h46.19v13.73H367.7v57.65H352.28Z" transform="translate(-73.92 -37.44)"/><polygon class="a" points="315.72 170.94 333.44 170.94 333.44 242.22 315.78 242.22 315.72 170.94"/><path class="a" d="M622,279.71V222.05H606.79V208.33H653v13.73H637.45v57.65H622Z" transform="translate(-73.92 -37.44)"/><path class="a" d="M370.37,108.79s26.45-7.19,24.74-18.73c-2-13.41-35.32-14.31-57.61-14.31L344,90.06s22.49-1.48,27.88,2C376.5,95,375.51,99.56,370.37,108.79Z" transform="translate(-73.92 -37.44)"/><path class="a" d="M403.85,95.26s41.52-37.66-89.4-33.93c-97.54,2.78-121.72,35-121.72,35s24.81-42.85,125.62-45.47C458,47.26,407,94.48,403.85,95.26Z" transform="translate(-73.92 -37.44)"/><path class="a" d="M392,112.26S469.31,101.08,465.86,71c-3.64-31.74-95.23-32.9-95.23-32.9s131.49-8.24,133.15,33.17C505.47,113.15,392,112.26,392,112.26Z" transform="translate(-73.92 -37.44)"/><path class="a" d="M337.13,93.63s-29,6.62-25.48,19C315.52,126.15,348.59,131,370,130.8l-8.84-16.89s-19.4-.67-26.16-4.31C328.58,106.16,327.85,101.92,337.13,93.63Z" transform="translate(-73.92 -37.44)"/><path class="a" d="M301.57,105.71S262.4,151,413.91,150.48C553.6,150,534,97,534,97s33.81,64.13-123.89,65.13C311.14,162.78,275.89,134.21,301.57,105.71Z" transform="translate(-73.92 -37.44)"/><path class="a" d="M317.12,89.25s-80.2,15.78-76.73,52.57c3.3,35.07,116.94,40.2,116.94,40.2s-151.71,4.33-155.48-37.21C197.49,96.8,317.12,89.25,317.12,89.25Z" transform="translate(-73.92 -37.44)"/><circle class="a" cx="403.41" cy="231.66" r="10.51"/></svg>
 			<h2 class="h2">$reportTitle</h2><h3 class="h3">$reportDate</h3>
 		</div>
         <div class="row" style="margin-bottom:20px;">
@@ -985,10 +980,6 @@ foreach ($node in $nodes.data) {
 "@
         #endregion ::: BODY HTML
 
-        #CREATE THE HTML FILE::Defaults to C:\
-        #ConvertTo-Html -Title $reportTitle -Head $header -Body $body | Set-Content "C:\$reportTitle on $reportDate.htm"
-
-
         #region Create PDF
         #---- Note that this only will work if there is an internet connection, as it has to reach out to the API ---#
         #---- This uses pdflayer.com's API. The margins need to be set to 0 all the time to avoid the tables being --#
@@ -996,10 +987,8 @@ foreach ($node in $nodes.data) {
 
         $document_html = ConvertTo-Html -Title $reportTitle -Head $header -Body $body
 
-        #Make sure test is set to 1 if developing!!!!
         $test = 1
-        # support@atlantic.net access key for pdflayer.com
-        $access_key = "9645192ce6040a9ae18f658104b2428b"
+        $access_key = *** YOUR API KEY ***
 
         $api_uri = "http://api.pdflayer.com/api/convert?access_key=$access_key&test=$test&margin_bottom=0&margin_top=0&margin_right=0&margin_left=0"
 
