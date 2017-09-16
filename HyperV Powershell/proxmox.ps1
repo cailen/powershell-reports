@@ -13,7 +13,7 @@
 "@
 [System.Net.ServicePointManager]::CertificatePolicy = new-object IDontCarePolicy 
 
-$servername = Read-Host -Prompt 'What is the server IP?'
+$servername = Read-Host -Prompt 'What is the server IP (do not enter the port)?'
 $uri = 'https://' + $servername + ':8006/api2/json/'
 $ticketuri = $uri + 'access/ticket'
 $C = Get-Credential -Message 'Enter the server login'
@@ -1010,7 +1010,7 @@ foreach ($node in $nodes.data) {
 
         #endregion Create PDF
 
-        #region Clear variables
+        #region Clear individual node variables
         Remove-Variable body
         Remove-Variable header
         Remove-Variable TotalRamMax
@@ -1028,13 +1028,7 @@ foreach ($node in $nodes.data) {
         Remove-Variable offlineLXCs
         Remove-Variable totalLXCs
         Remove-Variable api_uri
-        #endregion Clear Variables
-
-        #region API/PDF Clear Vars
-
-        #endregion AP/PDF Clear Vars
-
-
+        #endregion Clear individual node variables
 
         #OPEN THE HTML FILE
         Invoke-Item "$([Environment]::GetFolderPath("Desktop"))\$reportTitle on $reportDate.pdf"
@@ -1042,6 +1036,8 @@ foreach ($node in $nodes.data) {
     }
 
 }
+
+#region Remove all script-wide variables
 Remove-Variable session
 Remove-Variable VHD_temp
 Remove-Variable nodes
@@ -1054,3 +1050,4 @@ Remove-Variable api_body
 Remove-Variable document_html
 Remove-Variable access_key
 Remove-Variable uri
+#endregion Remove all script-wide variables

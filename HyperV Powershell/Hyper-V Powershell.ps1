@@ -1,7 +1,4 @@
 ﻿#region ::: Variables
-$TotalHddMax = 0.00
-$TotalHddCurrent = 0.00
-$TotalHddOnline = 0.00
 $TotalRamMax = 0.00
 $TotalRamCurrent = 0.00
 $TotalRamOnline = 0.00
@@ -32,13 +29,11 @@ $harddriveString = ""
 #endregion ::: Variables
 
 #region ::: Get the memory and hard drive stats from the VMs
-Foreach ($VM in $VMs)
-{
+Foreach ($VM in $VMs) {
     $TotalRamMax += $VM.MemoryStartup
     $TotalRamCurrent += $VM.MemoryAssigned
     
-    if($VM.State -eq "Running")
-    {
+    if ($VM.State -eq "Running") {
         $TotalRamOnline += $VM.MemoryStartup
     } 
 
@@ -46,39 +41,32 @@ Foreach ($VM in $VMs)
 
 
     #Fill the drive stats dictionary (Key=Drive Letter, Value=Size)
-    foreach($VHD in $VHDs)
-    {
-        $driveArrCurrent[$VHD.Path.Substring(0,1)] += 0.0
-        $driveArrOnline[$VHD.Path.Substring(0,1)] += 0.0
+    foreach ($VHD in $VHDs) {
+        $driveArrCurrent[$VHD.Path.Substring(0, 1)] += 0.0
+        $driveArrOnline[$VHD.Path.Substring(0, 1)] += 0.0
 
-        if($VM.State -eq "Running")
-        {
-            if($driveArrMax.ContainsKey($VHD.Path.Substring(0,1)))
-            {
-                $driveArrMax[$VHD.Path.Substring(0,1)] += $VHD.Size -as [float]
-                $driveArrCurrent[$VHD.Path.Substring(0,1)] += $VHD.FileSize
-                $driveArrOnline[$VHD.Path.Substring(0,1)] += $VHD.Size
+        if ($VM.State -eq "Running") {
+            if ($driveArrMax.ContainsKey($VHD.Path.Substring(0, 1))) {
+                $driveArrMax[$VHD.Path.Substring(0, 1)] += $VHD.Size -as [float]
+                $driveArrCurrent[$VHD.Path.Substring(0, 1)] += $VHD.FileSize
+                $driveArrOnline[$VHD.Path.Substring(0, 1)] += $VHD.Size
             }
-            else
-            {
-                $driveArrMax[$VHD.Path.Substring(0,1)] += $VHD.Size -as [float]
-                $driveArrCurrent[$VHD.Path.Substring(0,1)] += $VHD.FileSize -as [float]
-                $driveArrOnline[$VHD.Path.Substring(0,1)] += $VHD.Size -as [float]
-                $driveArrFree.Add($VHD.Path.Substring(0,1),($driveLetters | Where-Object Name -ieq $VHD.Path.Substring(0,1) | Select-Object Free))
-                $driveArrUsed.Add($VHD.Path.Substring(0,1),($driveLetters | Where-Object Name -ieq $VHD.Path.Substring(0,1) | Select-Object Used))
+            else {
+                $driveArrMax[$VHD.Path.Substring(0, 1)] += $VHD.Size -as [float]
+                $driveArrCurrent[$VHD.Path.Substring(0, 1)] += $VHD.FileSize -as [float]
+                $driveArrOnline[$VHD.Path.Substring(0, 1)] += $VHD.Size -as [float]
+                $driveArrFree.Add($VHD.Path.Substring(0, 1), ($driveLetters | Where-Object Name -ieq $VHD.Path.Substring(0, 1) | Select-Object Free))
+                $driveArrUsed.Add($VHD.Path.Substring(0, 1), ($driveLetters | Where-Object Name -ieq $VHD.Path.Substring(0, 1) | Select-Object Used))
             }
         }
-        else
-        {
-            if($driveArrMax.ContainsKey($VHD.Path.Substring(0,1)))
-            {
-                $driveArrMax[$VHD.Path.Substring(0,1)] += $VHD.Size
+        else {
+            if ($driveArrMax.ContainsKey($VHD.Path.Substring(0, 1))) {
+                $driveArrMax[$VHD.Path.Substring(0, 1)] += $VHD.Size
             }
-            else
-            {
-                $driveArrMax[$VHD.Path.Substring(0,1)] += $VHD.Size
-                $driveArrFree.Add($VHD.Path.Substring(0,1),($driveLetters | Where-Object Name -ieq $VHD.Path.Substring(0,1) | Select-Object Free))
-                $driveArrUsed.Add($VHD.Path.Substring(0,1),($driveLetters | Where-Object Name -ieq $VHD.Path.Substring(0,1) | Select-Object Used))
+            else {
+                $driveArrMax[$VHD.Path.Substring(0, 1)] += $VHD.Size
+                $driveArrFree.Add($VHD.Path.Substring(0, 1), ($driveLetters | Where-Object Name -ieq $VHD.Path.Substring(0, 1) | Select-Object Free))
+                $driveArrUsed.Add($VHD.Path.Substring(0, 1), ($driveLetters | Where-Object Name -ieq $VHD.Path.Substring(0, 1) | Select-Object Used))
             }
         }
     }
@@ -89,49 +77,44 @@ Foreach ($VM in $VMs)
 #=============================
 
 #Go through each drive
-foreach ($driveFor in $driveArrMax.GetEnumerator())
-{
+foreach ($driveFor in $driveArrMax.GetEnumerator()) {
     $HostDriveTotal = ($driveArrFree[$driveFor.Key].Free + $driveArrUsed[$driveFor.Key].Used)
 
     #find out the percentages
-    [float]$hddMaxPercent = ("{0:N2}" -f ((($driveArrMax.Get_Item($driveFor.Key))/1gb -as [float])/($HostDriveTotal/1gb -as [float]) * 100))
-    [float]$hddUsedPercent = ("{0:N2}" -f ((($driveArrUsed[$driveFor.Key].Used)/1gb -as [float])/($HostDriveTotal/1gb -as [float]) * 100))
+    [float]$hddMaxPercent = ("{0:N2}" -f ((($driveArrMax.Get_Item($driveFor.Key)) / 1gb -as [float]) / ($HostDriveTotal / 1gb -as [float]) * 100))
+    [float]$hddUsedPercent = ("{0:N2}" -f ((($driveArrUsed[$driveFor.Key].Used) / 1gb -as [float]) / ($HostDriveTotal / 1gb -as [float]) * 100))
     
-    if($driveArrOnline.Count -gt 0)
-    {
-        [float]$hddOnlinePercent = ("{0:N2}" -f ((($driveArrOnline.Get_Item($driveFor.Key))/1gb -as [float])/($HostDriveTotal/1gb -as [float]) * 100))
-    }else{
+    if ($driveArrOnline.Count -gt 0) {
+        [float]$hddOnlinePercent = ("{0:N2}" -f ((($driveArrOnline.Get_Item($driveFor.Key)) / 1gb -as [float]) / ($HostDriveTotal / 1gb -as [float]) * 100))
+    }
+    else {
         $hddOnlinePercent = 0.0
     }
     
-    if($driveArrCurrent.Count -gt 0)
-    {
-    [float]$hddCurrentPercent = ("{0:N2}" -f ((($driveArrCurrent.Get_Item($driveFor.Key))/1gb -as [float])/($HostDriveTotal/1gb -as [float]) * 100))
-    }else{
+    if ($driveArrCurrent.Count -gt 0) {
+        [float]$hddCurrentPercent = ("{0:N2}" -f ((($driveArrCurrent.Get_Item($driveFor.Key)) / 1gb -as [float]) / ($HostDriveTotal / 1gb -as [float]) * 100))
+    }
+    else {
         $hddCurrentPercent = 0.0
     }
     #region ::: setup the progress bar percentages (in other words, if they're over 100%, set them to 100%
-    switch($hddUsedPercent)
-    {
+    switch ($hddUsedPercent) {
         {$hddUsedPercent -gt 90.00} {$hddUsedProgressBar = "danger"; break}
         {$hddUsedPercent -gt 75.00} {$hddUsedProgressBar = "warning"; break}
         default {$hddUsedProgressBar = "success"}
     }
 
-    if($hddMaxPercent -gt 100){$hddMaxPercent = 100.00;}
-    if($hddCurrentPercent -gt 100)
-    {
+    if ($hddMaxPercent -gt 100) {$hddMaxPercent = 100.00; }
+    if ($hddCurrentPercent -gt 100) {
         $hddCurrentPercent = 100.00 
         $hddGlyph = '<span class="glyphicon glyphicon-remove" style="color:#E53935"/>'
     }
-    if($hddOnlinePercent -ge 100)
-    {
+    if ($hddOnlinePercent -ge 100) {
         $hddOnlinePercent = 100.00
         $hddGlyph = '<span class="glyphicon glyphicon-remove" style="color:#E53935"/>'
     }
 
-    switch($hddOnlinePercent)
-    {
+    switch ($hddOnlinePercent) {
         {$hddOnlinePercent -gt 90.00} {$hddContainer = "danger"; $hddGlyph = '<span class="glyphicon glyphicon-remove" style="color:#E53935"/>'; break}
         {$hddOnlinePercent -gt 75.00} {$hddContainer = "warning"; $hddGlyph = '<span class="glyphicon glyphicon-exclamation-sign" style="color:#FFA726"/>'; break}
         default {$hddContainer = "success"; $hddGlyph = '<span class="glyphicon glyphicon-ok" style="color:#66BB6A"/>'; break}
@@ -141,14 +124,12 @@ foreach ($driveFor in $driveArrMax.GetEnumerator())
     $hddOnlineProgressBar = "success"
     $hddCurrentProgressBar = "info"
 
-    switch ($hddOnlinePercent)
-    {
+    switch ($hddOnlinePercent) {
         {$hddOnlinePercent -gt 90.00} {$hddOnlineProgressBar = "danger"; break}
         {$hddOnlinePercent -gt 75.00} {$hddOnlineProgressBar = "warning"; break}
         default {$hddOnlineProgressBar = "success"}
     }
-    switch ($hddCurrentPercent)
-    {
+    switch ($hddCurrentPercent) {
         {$hddCurrentPercent -gt 90.00} {$hddCurrentProgressBar = "danger"; break}
         {$hddCurrentPercent -gt 75.00} {$hddCurrentProgressBar = "warning"; break}
         default {$hddCurrentProgressBar = "info"}
@@ -157,33 +138,27 @@ foreach ($driveFor in $driveArrMax.GetEnumerator())
 
     #region ::: adjust the percentages for the progress bar
     #IF ONLINE IS BIGGER THAN MAX, MAX IS GOING TO BE 0
-    if ($hddOnlinePercent -ge $hddMaxPercent)
-    {
+    if ($hddOnlinePercent -ge $hddMaxPercent) {
         #IF CURRENT IS BIGGER THAN ONLINE, BOTH MAX AND ONLINE ARE 0
-        if($hddCurrentPercent -ge $hddOnlinePercent)
-        {    
+        if ($hddCurrentPercent -ge $hddOnlinePercent) {    
             $hddOnlinePercent = 0
             $hddMaxPercent = 0
         }
         #IF ONLINE IS BIGGER THAN CURRENT, CURRENT STAYS THE SAME AND ONLINE IS THE REMAINDER
-        else
-        {
+        else {
             $hddOnlinePercent = ($hddOnlinePercent - $hddCurrentPercent)
             $hddMaxPercent = 0
         }
     }
     #IF MAX IS BIGGER THAN ONLINE, MAX IS THE REMAINDER
-    elseif($hddMaxPercent -ge $hddOnlinePercent)
-    {
+    elseif ($hddMaxPercent -ge $hddOnlinePercent) {
         #IF MAX IS BIGGER THAN CURRENT, MAX and ONLINE ARE REMAINDERS
-        if ($hddMaxPercent -ge $hddCurrentPercent)
-        {
+        if ($hddMaxPercent -ge $hddCurrentPercent) {
             $hddOnlinePercent = ($hddOnlinePercent - $hddCurrentPercent)
             $hddMaxPercent = ($hddMaxPercent - ($hddOnlinePercent + $hddCurrentPercent))
         }
         #IF CURRENT IS BIGGER THAN MAX, MAX IS 0 AND ONLINE IS THE REMAINDER
-        else
-        {  
+        else {  
             $hddOnlinePercent = ($hddOnlinePercent - $hddCurrentPercent)
             $hddMaxPercent = 0
         }
@@ -191,8 +166,7 @@ foreach ($driveFor in $driveArrMax.GetEnumerator())
     
     # if($hddCurrentPercent -ge $hddOnlinePercent)
     # Since current usage is higher than other metrics, the rest are set to 0
-    else
-    {
+    else {
         $hddOnlinePercent = 0
         $hddMaxPercent = 0
     }
@@ -270,26 +244,24 @@ foreach ($driveFor in $driveArrMax.GetEnumerator())
 #region ::: RAM Progress Bar Calculations
 #=============================
 
-[float]$ramMaxPercent = ("{0:N2}" -f (($TotalRamMax/1gb -as [float])/($HostMemory.MemoryCapacity/1gb -as [float]) * 100))
-[float]$ramOnlinePercent = ("{0:N2}" -f (($TotalRamOnline/1gb -as [float])/($HostMemory.MemoryCapacity/1gb -as [float]) * 100))
-[float]$ramCurrentPercent = ("{0:N2}" -f (($TotalRamCurrent/1gb -as [float])/($HostMemory.MemoryCapacity/1gb -as [float]) * 100))
+[float]$ramMaxPercent = ("{0:N2}" -f (($TotalRamMax / 1gb -as [float]) / ($HostMemory.MemoryCapacity / 1gb -as [float]) * 100))
+[float]$ramOnlinePercent = ("{0:N2}" -f (($TotalRamOnline / 1gb -as [float]) / ($HostMemory.MemoryCapacity / 1gb -as [float]) * 100))
+[float]$ramCurrentPercent = ("{0:N2}" -f (($TotalRamCurrent / 1gb -as [float]) / ($HostMemory.MemoryCapacity / 1gb -as [float]) * 100))
 
-if($ramMaxPercent -gt 100){$ramMaxPercent = 100}
-if($ramCurrentPercent -gt 100){$ramCurrentPercent = 100}
-if($ramOnlinePercent -gt 100){$ramOnlinePercent = 100}   
+if ($ramMaxPercent -gt 100) {$ramMaxPercent = 100}
+if ($ramCurrentPercent -gt 100) {$ramCurrentPercent = 100}
+if ($ramOnlinePercent -gt 100) {$ramOnlinePercent = 100}   
 
 $memoryMaxProgressBar = "danger"
 $memoryOnlineProgressBar = "success"
 $memoryCurrentProgressBar = "info"
 
-switch ($ramOnlinePercent)
-{
+switch ($ramOnlinePercent) {
     {$_ -gt 90.00} {$memoryOnlineProgressBar = "danger"; break}
     {$_ -gt 75.00} {$memoryOnlineProgressBar = "warning"; break}
     default {$memoryOnlineProgressBar = "success"}
 }
-switch ($ramCurrentPercent)
-{
+switch ($ramCurrentPercent) {
     {$_ -gt 90.00} {$memoryCurrentProgressBar = "danger"; break}
     {$_ -gt 75.00} {$memoryCurrentProgressBar = "warning"; break}
     default {$memoryCurrentProgressBar = "info"}
@@ -297,43 +269,36 @@ switch ($ramCurrentPercent)
 
 #region ::: Adjust the percentages for the progress bar
 #IF ONLINE IS BIGGER THAN MAX, MAX IS GOING TO BE 0
-if ($ramOnlinePercent -ge $ramMaxPercent)
-{
+if ($ramOnlinePercent -ge $ramMaxPercent) {
     #IF CURRENT IS BIGGER THAN ONLINE, BOTH MAX AND ONLINE ARE 0
-    if($ramCurrentPercent -ge $ramOnlinePercent)
-    {    
+    if ($ramCurrentPercent -ge $ramOnlinePercent) {    
         $ramOnlinePercent = 0
         $ramMaxPercent = 0
     }
     #IF ONLINE IS BIGGER THAN CURRENT, CURRENT STAYS THE SAME AND ONLINE IS THE REMAINDER
-    else
-    {
+    else {
         $ramOnlinePercent = ($ramOnlinePercent - $ramCurrentPercent)
         $ramMaxPercent = 0
     }
 }
 #IF MAX IS BIGGER THAN ONLINE, MAX IS THE REMAINDER
-elseif($ramMaxPercent -ge $ramOnlinePercent)
-{
+elseif ($ramMaxPercent -ge $ramOnlinePercent) {
     #IF MAX IS BIGGER THAN CURRENT, MAX and ONLINE ARE REMAINDERS
-    if ($ramMaxPercent -ge $ramCurrentPercent)
-    {
+    if ($ramMaxPercent -ge $ramCurrentPercent) {
         $ramOnlinePercent = ($ramOnlinePercent - $ramCurrentPercent)
         $ramMaxPercent = ($ramMaxPercent - ($ramOnlinePercent + $ramCurrentPercent))
     }
     #IF CURRENT IS BIGGER THAN MAX, MAX IS 0 AND ONLINE IS THE REMAINDER
-    else
-    {  
+    else {  
         $ramOnlinePercent = ($ramOnlinePercent - $ramCurrentPercent)
         $ramMaxPercent = 0
     }
 }
 else
 # if($ramCurrentPercent -ge $ramOnlinePercent)
-# Since current usage is higher than other metrics, the rest are set to 0
-{
-    $ramOnlinePercent = 0
-    $ramMaxPercent = 0
+# Since current usage is higher than other metrics, the rest are set to 0 {
+$ramOnlinePercent = 0
+$ramMaxPercent = 0
 }
 #endregion ::: Adjust the percentages for the progress bar
 
@@ -342,30 +307,26 @@ else
 
 #region ::: VMs
 #Create the individual VM panels
-Foreach ($VM in $VMs)
-{
+Foreach ($VM in $VMs) {
     $HardDrives = $VM.HardDrives
     $VM_style = ""
     $VM_state = ""
 
-    [float]$VHD_Used = ("{0:N2}" -f ((($driveArrUsed[$driveFor.Key].Used)/1gb -as [float])/($HostDriveTotal/1gb -as [float]) * 100))
+    [float]$VHD_Used = ("{0:N2}" -f ((($driveArrUsed[$driveFor.Key].Used) / 1gb -as [float]) / ($HostDriveTotal / 1gb -as [float]) * 100))
 
-    $(Switch($VM.State)
-    {
-        "Running" {$VM_style = "success"; $VM_state = '<span class="glyphicon glyphicon-play" style="font-size:1.6em;"></span>'; break;}
-        "Paused" {$VM_style = "warning"; $VM_state = '<span class="glyphicon glyphicon-pause" style="font-size:1.6em;"></span>'; break;}
-        "Off" {$VM_style = "danger"; $VM_state = '<span class="glyphicon glyphicon-stop" style="font-size:1.6em;"></span>'; break;}
-        "Saved" {$VM_style = "warning"; $VM_state = '<span class="glyphicon glyphicon-save" style="font-size:1.6em;"></span>'; break;}
-        default {$VM_style = "info"; $VM_state = '<span class="glyphicon glyphicon-asterisk" style="font-size:1.6em;"></span>'; break;}
-    })
+    $(Switch ($VM.State) {
+            "Running" {$VM_style = "success"; $VM_state = '<span class="glyphicon glyphicon-play" style="font-size:1.6em;"></span>'; break; }
+            "Paused" {$VM_style = "warning"; $VM_state = '<span class="glyphicon glyphicon-pause" style="font-size:1.6em;"></span>'; break; }
+            "Off" {$VM_style = "danger"; $VM_state = '<span class="glyphicon glyphicon-stop" style="font-size:1.6em;"></span>'; break; }
+            "Saved" {$VM_style = "warning"; $VM_state = '<span class="glyphicon glyphicon-save" style="font-size:1.6em;"></span>'; break; }
+            default {$VM_style = "info"; $VM_state = '<span class="glyphicon glyphicon-asterisk" style="font-size:1.6em;"></span>'; break; }
+        })
 
-    foreach($HardDrive in $HardDrives)
-    {
+    foreach ($HardDrive in $HardDrives) {
         $VHD_temp = $HardDrive.path | Get-VHD
-        [float]$vhd_UsedPercent = ("{0:N2}" -f ($VHD_temp.FileSize/1gb –as [float])/($VHD_temp.Size/1gb –as [float]) * 100)
+        [float]$vhd_UsedPercent = ("{0:N2}" -f ($VHD_temp.FileSize / 1gb –as [float]) / ($VHD_temp.Size / 1gb –as [float]) * 100)
 
-        switch ($vhd_UsedPercent)
-        {
+        switch ($vhd_UsedPercent) {
             {$vhd_UsedPercent -gt 90.00} {$vhd_ProgressBar = "danger"; break}
             {$vhd_UsedPercent -gt 75.00} {$vhd_ProgressBar = "warning"; break}
             default {$vhd_ProgressBar = "success"}
@@ -848,9 +809,6 @@ Invoke-RestMethod -Method Post -Uri $uri -Body $api_body -Verbose -OutFile "$([E
 
 #region Clear variables
 Remove-Variable body
-Remove-Variable TotalHddMax
-Remove-Variable TotalHddCurrent
-Remove-Variable TotalHddOnline
 Remove-Variable header
 Remove-Variable TotalRamMax
 Remove-Variable TotalRamCurrent
